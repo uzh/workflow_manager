@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# 20121112 masa workflow manager client
+Version = '20131104-192323'
+
+require 'drb/drb' 
+require 'workflow_manager/optparse_ex'
+
+opt = OptionParser.new do |o|
+  o.banner = "Usage:\n #{File.basename(__FILE__)} [options] [job_script.sh]"
+  o.on(:user, 'sushi lover', '-u user', '--user', 'who submitted? (default: sushi lover)')
+  o.on(:project, 1001, '-p project', '--project', 'project number (default: 1001)')
+  o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
+  o.on(:log, '-o logdir', '--logdir', 'directory of standard output and standard error file outputted after the job')
+  o.on(:cores, '-c cores', '--cores', 'Number of cores to request for g-sub')
+  o.on(:nodes, '-n nodes', '--nodes', 'Comma separated list of nodes to submit to for g-sub')
+  o.on(:ram, '-r RAM', '--RAM', 'Amount of RAM to request in Gigs for g-sub')
+  o.on(:scratch, '-s scratch', '--scratch', 'Amount of scratch space to request in Gigs for g-sub')
+  o.parse!(ARGV)
+end
+unless script_file = ARGV[0] and script_file =~ /\.sh/
+  print opt.help
+  exit
+end
+
+project_number = opt.project
+uri = opt.server
+user = opt.user
+wfmrc = if File.exist?(".wfmrc")
+          ".wfmrc"
+        elsif File.exist?(File.expand_path("~/.wfmrc"))
+          File.expand_path("~/.wfmrc")
+        end
+if wfmrc
+  File.readlines(wfmrc).each do |line|
+    if line =~ /user:\s*(.+)/
+      user = $1
+    end
+    if line =~ /server:\s*(druby.+)/
+      uri = $1
+    end
+    if line =~ /project:\s*(\d+)/
+      project_number = $1
+    end
+  end
+end
+sge_options = []
+sge_options << "-c #{opt.cores}" if opt.cores
+sge_options << "-r #{opt.ram}" if opt.ram
+sge_options << "-s #{opt.scratch}" if opt.scratch
+sge_options << "-n #{opt.nodes}" if opt.nodes
+
+script_content = File.read(script_file)
+workflow_manager = DRbObject.new_with_uri(uri)
+puts workflow_manager.start_monitoring(script_file, user, 0, script_content, project_number, sge_options.join(' '), opt.log)
