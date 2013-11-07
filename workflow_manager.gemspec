@@ -6,10 +6,10 @@ require 'workflow_manager/version'
 Gem::Specification.new do |spec|
   spec.name          = "workflow_manager"
   spec.version       = WorkflowManager::VERSION
-  spec.authors       = ["Masa"]
-  spec.email         = ["masaomi.hatakeyama@gmail.com"]
-  spec.description   = %q{Workflow Manager manages job submissions using DRuby S/C model.}
-  spec.summary       = %q{Workflow Manager manages job submissions using DRuby S/C model.}
+  spec.authors       = ["Functional Genomics Center Zurich"]
+  spec.email         = ["masaomi.hatakeyama@fgcz.uzh.ch"]
+  spec.description   = %q{Workflow Manager manages job submissions using dRuby.}
+  spec.summary       = %q{Workflow Manager manages job submissions using dRuby.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
