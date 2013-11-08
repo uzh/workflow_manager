@@ -3,7 +3,20 @@
 
 require 'drb/drb' 
 require 'fileutils'
-require 'kyotocabinet'
+begin
+  require 'kyotocabinet'
+  NO_KYOTO = false
+rescue LoadError
+  require 'pstore'
+  class PStore
+    def each
+      self.roots.each do |key|
+        yield(key, self[key])
+      end
+    end
+  end
+  NO_KYOTO = true
+end
 
 module WorkflowManager
   # default parameters
@@ -77,9 +90,9 @@ module WorkflowManager
       FileUtils.mkdir_p @log_dir unless File.exist?(@log_dir)
       FileUtils.mkdir_p @db_dir unless File.exist?(@db_dir)
       #@statuses = KyotoCabinet::DB.new
-      @statuses = KyotoDB.new(@db_stat)
+      @statuses = NO_KYOTO ? PStoreDB.new(@db_stat) : KyotoDB.new(@db_stat)
       #@logs = KyotoCabinet::DB.new 
-      @logs = KyotoDB.new (@db_logs)
+      @logs = NO_KYOTO ? PStoreDB.new(@db_logs) : KyotoDB.new(@db_logs)
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
       @cluster = config.cluster
