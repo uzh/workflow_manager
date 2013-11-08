@@ -44,6 +44,28 @@ module WorkflowManager
       @@config
     end
 
+    class KyotoDB
+      def initialize(db_file)
+        @file = db_file
+        @db = KyotoCabinet::DB.new
+      end
+      def transaction
+        @db.open(@file)
+        yield(@db)
+        @db.close
+      end
+    end
+    class PStoreDB 
+      def initialize(db_file)
+        @db = PStore.new(db_file)
+      end
+      def transaction
+        @db.transaction do 
+          yield(@db)
+        end
+      end
+    end
+
     def initialize
       @interval = config.interval
       @resubmit = config.resubmit
@@ -54,8 +76,10 @@ module WorkflowManager
       @db_dir  = File.expand_path(config.db_dir)
       FileUtils.mkdir_p @log_dir unless File.exist?(@log_dir)
       FileUtils.mkdir_p @db_dir unless File.exist?(@db_dir)
-      @statuses = KyotoCabinet::DB.new
-      @logs = KyotoCabinet::DB.new 
+      #@statuses = KyotoCabinet::DB.new
+      @statuses = KyotoDB.new(@db_stat)
+      #@logs = KyotoCabinet::DB.new 
+      @logs = KyotoDB.new (@db_logs)
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
       @cluster = config.cluster
@@ -93,24 +117,28 @@ module WorkflowManager
           loop do
             status = success_or_fail(t_job_id, t_log_file) 
             script_name = File.basename(submit_command).split(/-/).first
-            @statuses.open(@db_stat)
-            start_time = if stat = @statuses[t_job_id] and stat = stat.split(/,/) and time = stat[2]
-                          time
-                         end
-            time = if start_time 
-                     if status == 'success' or status == 'fail'
-                       start_time + '/' + Time.now.strftime("%Y-%m-%d %H:%M:%S")
+            #@statuses.open(@db_stat)
+            @statuses.transaction do |statuses|
+            #start_time = if stat = @statuses[t_job_id] and stat = stat.split(/,/) and time = stat[2]
+              start_time = if stat = statuses[t_job_id] and stat = stat.split(/,/) and time = stat[2]
+                             time
+                           end
+              time = if start_time 
+                       if status == 'success' or status == 'fail'
+                         start_time + '/' + Time.now.strftime("%Y-%m-%d %H:%M:%S")
+                       else
+                         start_time
+                       end
                      else
-                       start_time
+                       Time.now.strftime("%Y-%m-%d %H:%M:%S")
                      end
-                   else
-                     Time.now.strftime("%Y-%m-%d %H:%M:%S")
-                   end
-            @statuses[t_job_id] = [status, script_name, time, user, project_number].join(',')
-            @statuses.close
-            @logs.open(@db_logs)
-            @logs[t_job_id] = t_log_file
-            @logs.close
+            #@statuses[t_job_id] = [status, script_name, time, user, project_number].join(',')
+              statuses[t_job_id] = [status, script_name, time, user, project_number].join(',')
+            #@statuses.close
+            end
+            @logs.transaction do |logs|
+              logs[t_job_id] = t_log_file
+            end
             #warn t_job_id + " " + status
             if status == 'success'
               log_puts(status + ": " + t_job_id)
@@ -135,9 +163,11 @@ module WorkflowManager
                 log_puts("resubmit: " + t_job_id)
                 resubmit_job_id = start_monitoring(t_submit_command, t_user, t_resubmit + 1, t_script, t_project_number, t_sge_options)
                 script_name = File.basename(submit_command).split(/-/).first
-                @statuses.open(@db_stat)
-                @statuses[t_job_id] = ["resubmit: " + resubmit_job_id.to_s, script_name, Time.now.strftime("%Y-%m-%d %H:%M:%S"), t_user, t_project_number].join(',')
-                @statuses.close
+                #@statuses.open(@db_stat)
+                @statuses.transaction do |statuses|
+                  statuses[t_job_id] = ["resubmit: " + resubmit_job_id.to_s, script_name, Time.now.strftime("%Y-%m-%d %H:%M:%S"), t_user, t_project_number].join(',')
+                #@statuses.close
+                end
               else
                 log_puts("fail: " + t_job_id)
               end
@@ -162,30 +192,35 @@ module WorkflowManager
     end
     def status(job_id)
       stat = nil
-      @statuses.open(@db_stat)
-      stat = @statuses[job_id.to_s]
-      @statuses.close
+      #@statuses.open(@db_stat)
+      @statuses.transaction do |statuses|
+        stat = statuses[job_id.to_s]
+      #@statuses.close
+      end
       stat
     end
     def job_list(with_results=false, project_number=nil)
       s = []
-      @statuses.open(@db_stat)
-      @statuses.each do |key, value|
-        if project_number 
-          if x = value.split(/,/)[4].to_i==project_number.to_i
+      #@statuses.open(@db_stat)
+      @statuses.transaction do |statuses|
+        statuses.each do |key, value|
+          if project_number 
+            if x = value.split(/,/)[4].to_i==project_number.to_i
+              s << [key, value]
+            end
+          else
             s << [key, value]
           end
-        else
-          s << [key, value]
         end
+      #@statuses.close
       end
-      @statuses.close
       s.sort.reverse.map{|v| v.join(',')}.join("\n")
     end
     def get_log(job_id, with_err=false)
-      @logs.open(@db_logs)
-      log_file = @logs[job_id.to_s]
-      @logs.close
+      log_file = nil
+      @logs.transaction do |logs|
+        log_file = logs[job_id.to_s]
+      end
       log_data = if log_file and File.exist?(log_file)
                    "__STDOUT LOG__\n\n" + File.read(log_file)
                  else
@@ -201,9 +236,10 @@ module WorkflowManager
       log_data
     end
     def get_script(job_id)
-      @logs.open(@db_logs)
-      script_file = @logs[job_id.to_s]
-      @logs.close
+      script_file = nil
+      @logs.transaction do |logs|
+        script_file = logs[job_id.to_s]
+      end
       if script_file
         script_file = script_file.gsub(/_o\.log/,'')
       end
