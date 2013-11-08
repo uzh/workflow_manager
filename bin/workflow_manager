@@ -17,7 +17,7 @@ if opt.mode =~ /[development|production]/
 end
 print "mode = #{opt.mode}\n"
 if opt.mode
-  require File.join("workflow_manager/config/environments", opt.mode )
+  require File.join("workflow_manager/../../config/environments", opt.mode )
 end
 DRb.start_service(uri, WorkflowManager::Server.new) 
 puts DRb.uri
