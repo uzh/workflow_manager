@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 require 'workflow_manager'
+require 'fileutils'
 
 opt = OptionParser.new do |o|
   o.banner = "Usage:\n #{File.basename(__FILE__)} -d [druby://host:port] -m [development|production]"
@@ -17,7 +18,20 @@ if opt.mode =~ /[development|production]/
 end
 print "mode = #{opt.mode}\n"
 if opt.mode
-  require File.join("workflow_manager/../../config/environments", opt.mode )
+  config_dir = "./config/environments/"
+  FileUtils.mkdir_p config_dir
+  config_file = File.join(config_dir, opt.mode+".rb")
+  unless File.exist?(config_file)
+    app_dir = File.expand_path('..', __FILE__)
+    default_config_dir = File.join(app_dir, "../config/environments")
+    default_config_file = File.join(default_config_dir, opt.mode+".rb")
+    if File.exist?(default_config_file)
+      FileUtils.cp(default_config_file, config_file)
+    else
+      raise "Configure file does not exist: #{config_file}"
+    end
+  end
+  require config_file
 end
 DRb.start_service(uri, WorkflowManager::Server.new) 
 puts DRb.uri
