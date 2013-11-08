@@ -1,3 +1,3 @@
-class WorkflowManager
-  VERSION = "0.0.5"
+module WorkflowManager
+  VERSION = "0.0.6"
 end
