@@ -82,8 +82,10 @@ module WorkflowManager
     def initialize
       @interval = config.interval
       @resubmit = config.resubmit
-      @db_stat = File.join(config.db_dir, 'statuses.kch')
-      @db_logs  = File.join(config.db_dir, 'logs.kch')
+      extension = NO_KYOTO ? '.pstore' : '.kch'
+      db_mode = NO_KYOTO ? 'PStore' : 'KyotoCabinet'
+      @db_stat = File.join(config.db_dir, 'statuses'+extension)
+      @db_logs  = File.join(config.db_dir, 'logs'+extension)
 
       @log_dir = File.expand_path(config.log_dir)
       @db_dir  = File.expand_path(config.db_dir)
@@ -96,6 +98,8 @@ module WorkflowManager
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
       @cluster = config.cluster
+      puts("DB = #{db_mode}")
+      log_puts("DB = #{db_mode}")
       log_puts("Server starts")
     end
     def hello
