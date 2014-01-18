@@ -207,13 +207,24 @@ module WorkflowManager
         job_id.to_i
       end
     end
-    def status(job_id)
+    def status(job_id, new_status=nil)
       stat = nil
       #@statuses.open(@db_stat)
       @statuses.transaction do |statuses|
-        stat = statuses[job_id.to_s]
-      #@statuses.close
+        if new_status and stat = statuses[job_id.to_s]
+          status_list = ['success', 'running', 'fail']
+          if status_list.include?(new_status)
+            items = stat.split(/,/)
+            items.shift
+            items.unshift(new_status)
+            stat = items.join(',')
+            statuses[job_id.to_s] = stat
+          end
+        else
+          stat = statuses[job_id.to_s]
+        end
       end
+      #@statuses.close
       stat
     end
     def job_list(with_results=false, project_number=nil)
