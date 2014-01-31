@@ -99,7 +99,9 @@ module WorkflowManager
       @mutex = Mutex.new
       @cluster = config.cluster
       puts("DB = #{db_mode}")
+      puts("Cluster = #{@cluster.name}")
       log_puts("DB = #{db_mode}")
+      log_puts("Cluster = #{@cluster.name}")
       log_puts("Server starts")
     end
     def hello
