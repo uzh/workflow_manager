@@ -28,6 +28,8 @@ module WorkflowManager
     end
     def copy_commands(org_dir, dest_parent_dir)
     end
+    def kill_command(job_id)
+    end
   end
 
   class LocalComputer < Cluster
@@ -68,6 +70,9 @@ module WorkflowManager
       commands << "mkdir -p #{dest_parent_dir}"
       commands << "cp -r #{org_dir} #{dest_parent_dir}"
       commands
+    end
+    def kill_command(job_id)
+      command = "kill #{job_id}"
     end
   end
 
@@ -110,6 +115,9 @@ module WorkflowManager
     end
     def copy_commands(org_dir, dest_parent_dir)
       commands = ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+    end
+    def kill_command(job_id)
+      command = "qdel #{job_id}"
     end
   end
 end
