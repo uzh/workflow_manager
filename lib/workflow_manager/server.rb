@@ -111,6 +111,7 @@ module WorkflowManager
       @cluster.copy_commands(org_dir, dest_parent_dir)
     end
     def kill_job(job_id)
+      status(job_id, 'fail')
       status = `#{@cluster.kill_command(job_id)}`
     end
     def log_puts(str)
