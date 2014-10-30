@@ -30,6 +30,8 @@ module WorkflowManager
     end
     def kill_command(job_id)
     end
+    def delete_command(target)
+    end
   end
 
   class LocalComputer < Cluster
@@ -73,6 +75,9 @@ module WorkflowManager
     end
     def kill_command(job_id)
       command = "kill #{job_id}"
+    end
+    def delete_command(target)
+      command = "rm -rf #{target}"
     end
   end
 
@@ -119,11 +124,17 @@ module WorkflowManager
     def kill_command(job_id)
       command = "qdel #{job_id}"
     end
+    def delete_command(target)
+      command = "g-req remove #{target}"
+    end
   end
 
   class FGCZCourseCluster < FGCZCluster
     def copy_commands(org_dir, dest_parent_dir)
       commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
+    end
+    def delete_command(target)
+      command = "rm -rf #{target}"
     end
   end
 end
