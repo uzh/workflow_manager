@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20141030-152242'
+Version = '20141030-154007'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -9,6 +9,7 @@ require 'workflow_manager/optparse_ex'
 opt = OptionParser.new do |o|
   o.banner = "Usage:\n #{File.basename(__FILE__)} [option]"
   o.on(:target, nil, '-f file', '--file', 'File/Dir path')
+  o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
   o.parse!(ARGV)
 end
 
