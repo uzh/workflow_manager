@@ -114,6 +114,9 @@ module WorkflowManager
       status(job_id, 'fail')
       status = `#{@cluster.kill_command(job_id)}`
     end
+    def delete_command(target)
+      @cluster.delete_command(target)
+    end
     def log_puts(str)
       time = Time.now.strftime("[%Y.%m.%d %H:%M:%S]")
       @mutex.synchronize do
