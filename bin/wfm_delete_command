@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20141030-154443'
+Version = '20141030-154828'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
