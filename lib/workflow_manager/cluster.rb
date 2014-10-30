@@ -120,4 +120,10 @@ module WorkflowManager
       command = "qdel #{job_id}"
     end
   end
+
+  class FGCZCourseCluster < FGCZCluster
+    def copy_commands(org_dir, dest_parent_dir)
+      commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
+    end
+  end
 end
