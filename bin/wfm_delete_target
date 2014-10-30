@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20141030-154007'
+Version = '20141030-154443'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -14,10 +14,6 @@ opt = OptionParser.new do |o|
 end
 
 uri = opt.server||'druby://localhost:12345'
-unless job_id = opt.job_id
-  print opt.help
-  exit
-end
 
 workflow_manager = DRbObject.new_with_uri(uri)
 puts workflow_manager.delete_command(opt.target)
