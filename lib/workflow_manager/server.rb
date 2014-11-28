@@ -107,8 +107,8 @@ module WorkflowManager
     def hello
       'hello, '+ @cluster.name
     end
-    def copy_commands(org_dir, dest_parent_dir)
-      @cluster.copy_commands(org_dir, dest_parent_dir)
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
+      @cluster.copy_commands(org_dir, dest_parent_dir, now)
     end
     def kill_job(job_id)
       status(job_id, 'fail')
