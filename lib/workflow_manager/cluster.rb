@@ -26,7 +26,7 @@ module WorkflowManager
     end
     def job_ends?(log_file)
     end
-    def copy_commands(org_dir, dest_parent_dir)
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
     end
     def kill_command(job_id)
     end
@@ -67,7 +67,7 @@ module WorkflowManager
       result = `#{command}`
       result.to_s.empty? ? false : true
     end
-    def copy_commands(org_dir, dest_parent_dir)
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
       commands = []
       commands << "mkdir -p #{dest_parent_dir}"
       commands << "cp -r #{org_dir} #{dest_parent_dir}"
@@ -118,8 +118,12 @@ module WorkflowManager
       end
       log_flag
     end
-    def copy_commands(org_dir, dest_parent_dir)
-      commands = ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
+      commands = if now
+                   ["g-req copynow #{org_dir} #{dest_parent_dir}"]
+                 else
+                   ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+                 end
     end
     def kill_command(job_id)
       command = "qdel #{job_id}"
@@ -130,7 +134,7 @@ module WorkflowManager
   end
 
   class FGCZCourseCluster < FGCZCluster
-    def copy_commands(org_dir, dest_parent_dir)
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
       commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
     end
     def delete_command(target)
