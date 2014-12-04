@@ -108,7 +108,7 @@ module WorkflowManager
     end
     def job_ends?(log_file)
       log_flag = false
-      IO.popen("tail -n 10 #{log_file}") do |io|
+      IO.popen("tail -n 10 #{log_file} 2> /dev/null") do |io|
         while line=io.gets
           if line =~ /__SCRIPT END__/
             log_flag = true
