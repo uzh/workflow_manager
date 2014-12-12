@@ -251,7 +251,7 @@ module WorkflowManager
         end
       #@statuses.close
       end
-      s.sort.reverse.map{|v| v.join(',')}.join("\n")
+      s.sort_by{|i| i.split(',')[3]}.reverse.map{|v| v.join(',')}.join("\n")
     end
     def get_log(job_id, with_err=false)
       log_file = nil
