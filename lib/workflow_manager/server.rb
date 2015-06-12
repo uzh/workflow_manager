@@ -117,6 +117,9 @@ module WorkflowManager
     def delete_command(target)
       @cluster.delete_command(target)
     end
+    def cluster_nodes
+      @cluster.cluster_nodes
+    end
     def log_puts(str)
       time = Time.now.strftime("[%Y.%m.%d %H:%M:%S]")
       @mutex.synchronize do

@@ -3,9 +3,10 @@
 
 require 'workflow_manager'
 require 'fileutils'
+Version = WorkflowManager::VERSION
 
 opt = OptionParser.new do |o|
-  o.banner = "Usage:\n #{File.basename(__FILE__)} -d [druby://host:port] -m [development|production]"
+  o.banner = "Version: #{Version}\nUsage:\n #{File.basename(__FILE__)} -d [druby://host:port] -m [development|production]"
   o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
   o.on(:mode, 'development', '-m mode', '--mode', 'development|production (default: development)')
   o.parse!(ARGV)

@@ -32,6 +32,8 @@ module WorkflowManager
     end
     def delete_command(target)
     end
+    def cluster_nodes
+    end
   end
 
   class LocalComputer < Cluster
@@ -78,6 +80,9 @@ module WorkflowManager
     end
     def delete_command(target)
       command = "rm -rf #{target}"
+    end
+    def cluster_nodes
+      {"Local Computer" => ""}
     end
   end
 
@@ -130,6 +135,29 @@ module WorkflowManager
     end
     def delete_command(target)
       command = "g-req remove #{target}"
+    end
+    def cluster_nodes
+      nodes = {
+        'fgcz-c-045: cpu 64,mem 504 GB,scr  15T' => 'fgcz-c-045',
+        'fgcz-c-046: cpu 64,mem 504 GB,scr  11T' => 'fgcz-c-046',
+        'fgcz-c-047: cpu 32,mem   1 TB,scr  28T' => 'fgcz-c-047',
+        'fgcz-c-048: cpu 48,mem 252 GB,scr 3.5T' => 'fgcz-c-048',
+        'fgcz-c-049: cpu  8,mem  63 GB,scr 1.7T' => 'fgcz-c-049',
+        'fgcz-c-051: cpu  8,mem  31 GB,scr 800G' => 'fgcz-c-051',
+        'fgcz-c-052: cpu  8,mem  31 GB,scr 800G' => 'fgcz-c-052',
+        'fgcz-c-053: cpu  8,mem  31 GB,scr 800G' => 'fgcz-c-053',
+        'fgcz-c-054: cpu  8,mem  31 GB,scr 800G' => 'fgcz-c-054',
+        'fgcz-c-055: cpu  8,mem  31 GB,scr 800G' => 'fgcz-c-055',
+        'fgcz-c-057: cpu  8,mem  31 GB,scr 200G' => 'fgcz-c-057',
+        'fgcz-c-058: cpu  8,mem  31 GB,scr 200G' => 'fgcz-c-058',
+        'fgcz-c-059: cpu  8,mem  31 GB,scr 200G' => 'fgcz-c-059',
+        'fgcz-c-061: cpu  8,mem  31 GB,scr 200G' => 'fgcz-c-061',
+        'fgcz-c-063: cpu 12,mem  70 GB,scr 450G' => 'fgcz-c-063',
+        'fgcz-c-065: cpu 24,mem  70 GB,scr 197G' => 'fgcz-c-065',
+        'fgcz-h-002: cpu 32,mem  63 GB,scr 500G' => 'fgcz-h-002',
+        'fgcz-h-005: cpu 16,mem  65 GB,scr 500G' => 'fgcz-h-005',
+        'fgcz-h-006: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-006',
+      }
     end
   end
 
