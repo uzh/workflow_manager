@@ -120,6 +120,9 @@ module WorkflowManager
     def cluster_nodes
       @cluster.cluster_nodes
     end
+    def default_node
+      @cluster.default_node.to_s
+    end
     def log_puts(str)
       time = Time.now.strftime("[%Y.%m.%d %H:%M:%S]")
       @mutex.synchronize do
