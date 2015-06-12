@@ -34,6 +34,8 @@ module WorkflowManager
     end
     def cluster_nodes
     end
+    def default_node
+    end
   end
 
   class LocalComputer < Cluster
