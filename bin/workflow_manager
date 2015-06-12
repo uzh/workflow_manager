@@ -17,6 +17,7 @@ if opt.mode =~ /[development|production]/
   config = File.join(File.dirname(File.expand_path(__FILE__)), "../config/environments/#{opt.mode}.rb")
   opt.mode = nil unless File.exist?(config)
 end
+print "version = #{Version}\n"
 print "mode = #{opt.mode}\n"
 if opt.mode
   config_dir = "./config/environments/"
