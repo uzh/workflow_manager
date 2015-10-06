@@ -140,6 +140,7 @@ module WorkflowManager
     end
     def cluster_nodes
       nodes = {
+        'fgcz-c-044: cpu 16,mem 128 GB,scr 500G' => 'fgcz-c-044',
         'fgcz-c-045: cpu 64,mem 504 GB,scr  15T' => 'fgcz-c-045',
         'fgcz-c-046: cpu 64,mem 504 GB,scr  11T' => 'fgcz-c-046',
         'fgcz-c-047: cpu 32,mem   1 TB,scr  28T' => 'fgcz-c-047',
