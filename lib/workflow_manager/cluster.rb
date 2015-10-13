@@ -140,6 +140,7 @@ module WorkflowManager
     end
     def cluster_nodes
       nodes = {
+        'fgcz-c-043: cpu 24,mem  23 GB,scr  11T' => 'fgcz-c-043',
         'fgcz-c-044: cpu 16,mem 128 GB,scr 500G' => 'fgcz-c-044',
         'fgcz-c-045: cpu 64,mem 504 GB,scr  15T' => 'fgcz-c-045',
         'fgcz-c-046: cpu 64,mem 504 GB,scr  11T' => 'fgcz-c-046',
@@ -157,9 +158,6 @@ module WorkflowManager
         'fgcz-c-061: cpu  8,mem  31 GB,scr 200G' => 'fgcz-c-061',
         'fgcz-c-063: cpu 12,mem  70 GB,scr 450G' => 'fgcz-c-063',
         'fgcz-c-065: cpu 24,mem  70 GB,scr 197G' => 'fgcz-c-065',
-        'fgcz-h-002: cpu 32,mem  63 GB,scr 500G' => 'fgcz-h-002',
-        'fgcz-h-005: cpu 16,mem  65 GB,scr 500G' => 'fgcz-h-005',
-        'fgcz-h-006: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-006',
         'fgcz-h-009: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-009',
       }
     end
