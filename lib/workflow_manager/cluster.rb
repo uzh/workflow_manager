@@ -160,6 +160,7 @@ module WorkflowManager
         'fgcz-h-002: cpu 32,mem  63 GB,scr 500G' => 'fgcz-h-002',
         'fgcz-h-005: cpu 16,mem  65 GB,scr 500G' => 'fgcz-h-005',
         'fgcz-h-006: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-006',
+        'fgcz-h-009: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-009',
       }
     end
   end
