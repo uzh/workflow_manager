@@ -131,6 +131,16 @@ module WorkflowManager
          end
       end
     end
+    def input_dataset_tsv_path(script_content)
+      path = nil
+      script_content.split(/\n/).each do |line|
+        if line =~ /INPUT_DATASET=(.+)/
+          path = $1.chomp
+          break
+        end
+      end
+      path
+    end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
       log_puts("monitoring: script=" + submit_command + " user=" + user + " resubmit=" + resubmit.to_s + " project=" + project_number.to_s + " sge option=" + sge_options + " log dir=" + log_dir.to_s)
 

@@ -20,4 +20,22 @@ describe Server do
   context 'when new' do
     it {is_expected.to be_an_instance_of Server} # RSpec3
   end 
+  describe '#input_dataset_exist?' do
+    pending 
+  end
+  describe '#input_dataset_file_list' do
+    pending
+  end
+  describe '#input_dataset_tsv_path' do
+    let(:sample_script) {
+      "SCRATCH_DIR=/scratch/test_masa_2016-03-03--16-36-42_temp$$
+GSTORE_DIR=/srv/gstore/projects
+INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
+    }
+    let(:path){
+      '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv'
+    }
+    subject{server.input_dataset_tsv_path(sample_script)}
+    it {is_expected.to eq path}
+  end
 end
