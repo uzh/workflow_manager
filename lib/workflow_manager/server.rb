@@ -3,6 +3,7 @@
 
 require 'drb/drb' 
 require 'fileutils'
+require 'csv'
 begin
   require 'kyotocabinet'
   NO_KYOTO = false
@@ -132,14 +133,38 @@ module WorkflowManager
       end
     end
     def input_dataset_tsv_path(script_content)
+      gstore_dir = nil
       path = nil
       script_content.split(/\n/).each do |line|
-        if line =~ /INPUT_DATASET=(.+)/
+        if line =~ /GSTORE_DIR=(.+)/
+          gstore_dir = $1.chomp
+        elsif line =~ /INPUT_DATASET=(.+)/
           path = $1.chomp
           break
         end
       end
-      path
+      [gstore_dir, path]
+    end
+    def input_dataset_file_list(dataset_tsv_path)
+      file_list = []
+      CSV.foreach(dataset_tsv_path, :headers=>true, :col_sep=>"\t") do |row|
+        row.each do |header, value|
+          if header =~ /\[File\]/
+            file_list << value
+          end
+        end
+      end
+      file_list
+    end
+    def input_dataset_exist?(file_list)
+      flag = true
+      file_list.each do |file|
+        unless File.exist?(file)
+          flag = false
+          break
+        end
+      end
+      flag
     end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
       log_puts("monitoring: script=" + submit_command + " user=" + user + " resubmit=" + resubmit.to_s + " project=" + project_number.to_s + " sge option=" + sge_options + " log dir=" + log_dir.to_s)

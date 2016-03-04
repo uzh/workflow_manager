@@ -21,10 +21,29 @@ describe Server do
     it {is_expected.to be_an_instance_of Server} # RSpec3
   end 
   describe '#input_dataset_exist?' do
-    pending 
+    let(:file_list) {['file1', 'file2']}
+    subject{server.input_dataset_exist?(file_list)}
+    context 'when file exist' do 
+      before do
+        allow(File).to receive(:exist?).and_return(true)
+      end
+      it {is_expected.to eq true}
+    end
+    context 'when file not exist' do
+      before do
+        allow(File).to receive(:exist?).and_return(false)
+      end
+      it {is_expected.to eq false}
+    end
   end
   describe '#input_dataset_file_list' do
-    pending
+      subject{server.input_dataset_file_list('input_dataset_tsv_path')}
+      let(:rows) {{'Read1 [File]'=>'file1', 'Read2 [File]'=>'file2'} }
+      before do
+        allow(CSV).to receive(:foreach).and_yield(rows)
+      end
+      let(:sample_file_list) { ['file1', 'file2'] }
+      it {is_expected.to eq sample_file_list}
   end
   describe '#input_dataset_tsv_path' do
     let(:sample_script) {
@@ -33,7 +52,10 @@ GSTORE_DIR=/srv/gstore/projects
 INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     }
     let(:path){
-      '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv'
+      [
+        '/srv/gstore/projects',
+        '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv'
+      ]
     }
     subject{server.input_dataset_tsv_path(sample_script)}
     it {is_expected.to eq path}
