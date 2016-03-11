@@ -64,8 +64,43 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
   end
   describe '#start_monitoring2' do
     let(:script_file){'script_file'}
-    subject{server.start_monitoring2(script_file)}
+    subject {server.start_monitoring2(script_file)}
     #it {is_expected.to eq 'hoge'}
     pending
+  end
+  describe '#success_or_fail' do
+    let(:job_id){'job_id'}
+    let(:log_file){'log_file'}
+    let(:cluster){double('cluster')}
+    before do
+      server.instance_variable_set(:@cluster, cluster)
+    end
+    context 'when job running' do
+      before do
+        allow(cluster).to receive(:job_running?).and_return(true)
+        allow(cluster).to receive(:job_ends?).and_return(nil)
+        allow(cluster).to receive(:job_pending?).and_return(nil)
+      end
+      subject {server.success_or_fail(job_id, log_file)}
+      it {is_expected.to eq 'running'}
+    end
+    context 'when job ends' do
+      before do
+        allow(cluster).to receive(:job_running?).and_return(nil)
+        allow(cluster).to receive(:job_ends?).and_return(true)
+        allow(cluster).to receive(:job_pending?).and_return(nil)
+      end
+      subject {server.success_or_fail(job_id, log_file)}
+      it {is_expected.to eq 'success'}
+    end
+    context 'when job pending' do
+      before do
+        allow(cluster).to receive(:job_running?).and_return(nil)
+        allow(cluster).to receive(:job_ends?).and_return(nil)
+        allow(cluster).to receive(:job_pending?).and_return(true)
+      end
+      subject {server.success_or_fail(job_id, log_file)}
+      it {is_expected.to eq 'pending'}
+    end
   end
 end

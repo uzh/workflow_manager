@@ -106,7 +106,7 @@ module WorkflowManager
       log_puts("Server starts")
     end
     def hello
-      'hello, '+ @cluster.name
+      'hello test test, '+ @cluster.name
     end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
       @cluster.copy_commands(org_dir, dest_parent_dir, now)
@@ -166,13 +166,17 @@ module WorkflowManager
       end
       flag
     end
-    def start_monitoring2(script_file, script_content)
+    def start_monitoring2(script_file, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       path = input_dataset_tsv_path(script_content)
       file_list = input_dataset_file_list(path)
-
-      worker = Thread.new(script_file, script_content) do |t_script_file, t_script_content|
-      end
       if input_dataset_exist?(file_list)
+      end
+
+      job_id, log_file, command = @cluster.submit_job(script_file, script_content, sge_options)
+
+      if job_id and log_file
+        worker = Thread.new(script_file, script_content) do |t_script_file, t_script_content|
+        end
       end
     end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
@@ -338,16 +342,15 @@ module WorkflowManager
       script
     end
     def success_or_fail(job_id, log_file)
-      job_running = @cluster.job_running?(job_id)
-      job_ends = @cluster.job_ends?(log_file)
-      msg = if job_running
+      msg = if @cluster.job_running?(job_id)
               'running'
-            elsif job_ends
+            elsif @cluster.job_ends?(log_file)
               'success'
+            elsif @cluster.job_pending?(job_id)
+              'pending'
             else
               'fail'
             end
-      msg
     end
   end
 end
