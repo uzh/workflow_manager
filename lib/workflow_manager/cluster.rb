@@ -26,6 +26,8 @@ module WorkflowManager
     end
     def job_ends?(log_file)
     end
+    def job_pending?(job_id)
+    end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
     end
     def kill_command(job_id)
@@ -105,7 +107,8 @@ module WorkflowManager
      qstat_flag = false
       IO.popen('qstat -u "*"') do |io|
         while line=io.gets
-          if line =~ /#{job_id}/
+          jobid, prior, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state == 'r'
             qstat_flag = true
             break
           end
@@ -124,6 +127,19 @@ module WorkflowManager
         end
       end
       log_flag
+    end
+    def job_pending?(job_id)
+     qstat_flag = false
+      IO.popen('qstat -u "*"') do |io|
+        while line=io.gets
+          jobid, prior, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state == 'qw'
+            qstat_flag = true
+            break
+          end
+        end
+      end
+      qstat_flag
     end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
       commands = if now
