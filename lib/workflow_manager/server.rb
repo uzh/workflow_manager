@@ -166,6 +166,15 @@ module WorkflowManager
       end
       flag
     end
+    def start_monitoring2(script_file, script_content)
+      path = input_dataset_tsv_path(script_content)
+      file_list = input_dataset_file_list(path)
+
+      worker = Thread.new(script_file, script_content) do |t_script_file, t_script_content|
+      end
+      if input_dataset_exist?(file_list)
+      end
+    end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
       log_puts("monitoring: script=" + submit_command + " user=" + user + " resubmit=" + resubmit.to_s + " project=" + project_number.to_s + " sge option=" + sge_options + " log dir=" + log_dir.to_s)
 

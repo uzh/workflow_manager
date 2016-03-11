@@ -16,6 +16,8 @@ describe Server do
       config.cluster = double('local_computer')
       allow(config.cluster).to receive_messages(:log_dir= => nil, :name => 'local_computer')
     end
+    # suppress puts
+    allow($stdout).to receive(:write)
   end
   context 'when new' do
     it {is_expected.to be_an_instance_of Server} # RSpec3
@@ -59,5 +61,11 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     }
     subject{server.input_dataset_tsv_path(sample_script)}
     it {is_expected.to eq path}
+  end
+  describe '#start_monitoring2' do
+    let(:script_file){'script_file'}
+    subject{server.start_monitoring2(script_file)}
+    #it {is_expected.to eq 'hoge'}
+    pending
   end
 end
