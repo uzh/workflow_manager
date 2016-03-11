@@ -186,6 +186,23 @@ module WorkflowManager
         end
       end
     end
+    def finalize_monitoring(current_status, log_file, log_dir)
+      if current_status == 'success' or current_status == 'fail'
+        #log_puts(status + ": " + t_job_id)
+        unless log_dir.empty?
+          copy_commands(log_file, log_dir).each do |command|
+            #log_puts(command)
+            system command
+          end
+          err_file = log_file.gsub('_o.log','_e.log')
+          copy_commands(err_file, log_dir).each do |command|
+            #log_puts(command)
+            system command
+          end
+        end
+        Thread.current.kill
+      end
+    end
     def start_monitoring2(script_file, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       path = input_dataset_tsv_path(script_content)
       file_list = input_dataset_file_list(path)
@@ -195,11 +212,19 @@ module WorkflowManager
       job_id, log_file, command = @cluster.submit_job(script_file, script_content, sge_options)
 
       if job_id and log_file
-        worker = Thread.new(job_id, log_file, script_file, script_content) do |job_id, log_file, script_file, script_content|
+        worker = Thread.new(job_id, log_file, log_dir, script_file) do |job_id, log_file, log_dir, script_file|
           loop do
             # check status
+            current_status = check_status(job_id, log_file)
+
             # save time and status
+            update_time_status(job_id, current_status, script_file, user, project_number)
+
             # finalize (kill current thred) in case of success or fail 
+            finalize_monitoring(current_status, log_file)
+
+            # wait
+            sleep @interval
           end # loop
         end # thread
         job_id
