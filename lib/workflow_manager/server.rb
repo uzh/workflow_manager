@@ -166,6 +166,26 @@ module WorkflowManager
       end
       flag
     end
+    def update_time_status(job_id, current_status, script_name, user, project_number)
+      # if the current status changed from last time, then save, otherwise do nothing
+      # once status changes into success or fail, then the thread is expected to be killed in later process
+      @statuses.transaction do |statuses|
+        start_time = nil
+        if stat = statuses[job_id] 
+          last_status, script_name, start_time, user, project_number = stat.split(/,/)
+        end
+        time = if start_time 
+                 if current_status == 'success' or current_status == 'fail'
+                   start_time + '/' + Time.now.strftime("%Y-%m-%d %H:%M:%S")
+                 end
+               else
+                 Time.now.strftime("%Y-%m-%d %H:%M:%S")
+               end
+        if time
+          statuses[job_id] = [current_status, script_name, time, user, project_number].join(',')
+        end
+      end
+    end
     def start_monitoring2(script_file, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       path = input_dataset_tsv_path(script_content)
       file_list = input_dataset_file_list(path)
@@ -175,8 +195,14 @@ module WorkflowManager
       job_id, log_file, command = @cluster.submit_job(script_file, script_content, sge_options)
 
       if job_id and log_file
-        worker = Thread.new(script_file, script_content) do |t_script_file, t_script_content|
-        end
+        worker = Thread.new(job_id, log_file, script_file, script_content) do |job_id, log_file, script_file, script_content|
+          loop do
+            # check status
+            # save time and status
+            # finalize (kill current thred) in case of success or fail 
+          end # loop
+        end # thread
+        job_id
       end
     end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
@@ -275,7 +301,7 @@ module WorkflowManager
       #@statuses.open(@db_stat)
       @statuses.transaction do |statuses|
         if new_status and stat = statuses[job_id.to_s]
-          status_list = ['success', 'running', 'fail']
+          status_list = ['success', 'running', 'pending', 'fail']
           if status_list.include?(new_status)
             items = stat.split(/,/)
             items.shift
@@ -352,6 +378,7 @@ module WorkflowManager
               'fail'
             end
     end
+    alias_method :check_status, :success_or_fail
   end
 end
 

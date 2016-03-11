@@ -103,4 +103,58 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
       it {is_expected.to eq 'pending'}
     end
   end
+  describe '#status' do
+    let(:statuses) {double('statuses')}
+    before do 
+      server.instance_variable_set(:@statuses, statuses)
+    end
+    context 'when read status' do 
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id'=>'stat'})
+      end
+      subject {server.status('job_id')}
+      it {is_expected.to eq 'stat'}
+    end
+    context 'when assign status' do
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id'=>'running'})
+      end
+      subject {server.status('job_id', 'success')}
+      it {is_expected.to eq 'success'}
+    end
+  end
+  describe '#update_time_status' do
+    let(:statuses) {double('statuses')}
+    before do 
+      server.instance_variable_set(:@statuses, statuses)
+    end
+    context 'when initial call' do
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id' => nil})
+        allow(Time).to receive_message_chain(:now, :strftime).and_return('time')
+      end
+      let(:expected) {'current_status,script_name,time,user,project_number'}
+      subject {server.update_time_status('job_id', 'current_status', 'script_name', 'user', 'project_number')}
+      it {is_expected.to eq expected}
+    end
+    context 'when changing status from running to success' do
+      let(:last_status) {'running,script_name,start_time,user,project_number'}
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id' => last_status})
+        allow(Time).to receive_message_chain(:now, :strftime).and_return('end_time')
+      end
+      subject {server.update_time_status('job_id', 'success', 'script_name', 'user', 'project_number')}
+      let(:expected) {'success,script_name,start_time/end_time,user,project_number'}
+      it {is_expected.to eq expected}
+    end
+    context 'when current_status and new_sutatus are same' do
+      let(:last_status) {'running,script_name,start_time,user,project_number'}
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id' => last_status})
+        allow(Time).to receive_message_chain(:now, :strftime).and_return('end_time')
+      end
+      subject {server.update_time_status('job_id', 'running', 'script_name', 'user', 'project_number')}
+      it {is_expected.to be_nil}
+    end
+  end
 end
