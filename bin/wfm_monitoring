@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20131104-192323'
+Version = '20160317-153614'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -52,4 +52,5 @@ sge_options << "-n #{opt.nodes}" if opt.nodes
 
 script_content = File.read(script_file)
 workflow_manager = DRbObject.new_with_uri(uri)
-puts workflow_manager.start_monitoring(script_file, user, 0, script_content, project_number, sge_options.join(' '), opt.log)
+#puts workflow_manager.start_monitoring(script_file, user, 0, script_content, project_number, sge_options.join(' '), opt.log)
+puts workflow_manager.start_monitoring2(script_file, script_content, user, project_number, sge_options.join(' '), opt.log)
