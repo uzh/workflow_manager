@@ -6,6 +6,7 @@ require './lib/workflow_manager/server'
 include WorkflowManager
 describe Server do
   subject(:server) {Server.new}
+  let(:cluster){double('local_computer')}
   before do
     WorkflowManager::Server.configure do |config|
       config.log_dir = '/srv/GT/analysis/masaomi/workflow_manager/run_workflow_manager/logs'
@@ -13,7 +14,7 @@ describe Server do
       config.interval = 30
       config.resubmit = 0
       #config.cluster = WorkflowManager::LocalComputer.new('local_computer')
-      config.cluster = double('local_computer')
+      config.cluster = cluster
       allow(config.cluster).to receive_messages(:log_dir= => nil, :name => 'local_computer')
     end
     # suppress puts
@@ -63,10 +64,29 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     it {is_expected.to eq path}
   end
   describe '#start_monitoring2' do
-    let(:script_file){'script_file'}
-    subject {server.start_monitoring2(script_file)}
-    #it {is_expected.to eq 'hoge'}
-    pending
+    let(:script_path){'script_file'}
+    let(:script_content){'script_content'}
+    let(:cluster){double('cluster')}
+    before do
+      allow(server).to receive(:input_dataset_tsv_path)
+      allow(server).to receive(:input_dataset_file_list)
+      allow(server).to receive(:input_dataset_exist?)
+    end
+    context 'when submit_job failed' do
+      before do
+        allow(cluster).to receive(:submit_job)
+      end
+      subject {server.start_monitoring2(script_path, script_content)}
+      it {is_expected.to be_nil}
+    end
+    context 'when submit_job successed' do
+      before do
+        allow(cluster).to receive(:submit_job).and_return(['job_id', 'log_file', 'command'])
+        allow(Thread).to receive(:new)
+      end
+      subject {server.start_monitoring2(script_path, script_content)}
+      it {is_expected.to eq 'job_id'}
+    end
   end
   describe '#success_or_fail' do
     let(:job_id){'job_id'}

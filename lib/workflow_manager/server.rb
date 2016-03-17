@@ -203,22 +203,25 @@ module WorkflowManager
         Thread.current.kill
       end
     end
-    def start_monitoring2(script_file, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
+    def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
+      # script_path is only used to generate a log file name
+      # It is not used to read the script contents
       path = input_dataset_tsv_path(script_content)
       file_list = input_dataset_file_list(path)
       if input_dataset_exist?(file_list)
+        # wait until the files come
       end
 
-      job_id, log_file, command = @cluster.submit_job(script_file, script_content, sge_options)
+      job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
 
       if job_id and log_file
-        worker = Thread.new(job_id, log_file, log_dir, script_file) do |job_id, log_file, log_dir, script_file|
+        worker = Thread.new(job_id, log_file, log_dir, script_path) do |job_id, log_file, log_dir, script_path|
           loop do
             # check status
             current_status = check_status(job_id, log_file)
 
             # save time and status
-            update_time_status(job_id, current_status, script_file, user, project_number)
+            update_time_status(job_id, current_status, script_path, user, project_number)
 
             # finalize (kill current thred) in case of success or fail 
             finalize_monitoring(current_status, log_file)
