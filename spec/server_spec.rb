@@ -166,16 +166,13 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
       it {is_expected.to be_nil}
     end
     context 'when status == success' do
-      pending
-=begin
       before do
         allow(Thread).to receive_message_chain(:current, :kill)
         #expect(server).to receive(:system).twice
-        allow(Kernel).to receive(:system).and_return(true)
+        expect(server).to receive(:copy_commands).twice.and_return([])
       end
       subject {server.finalize_monitoring('success', 'log_file', 'log_dir')}
       it {is_expected.to be_nil}
-=end
     end
   end
 end
