@@ -190,6 +190,7 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
   describe '#finalize_monitoring' do
     context 'when status == running' do
       before do
+        allow(server).to receive(:log_puts)
         allow(Thread).to receive_message_chain(:current, :kill)
       end
       subject {server.finalize_monitoring('running', 'log_file', 'log_dir')}
@@ -197,6 +198,7 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     end
     context 'when status == success' do
       before do
+        allow(server).to receive(:log_puts)
         allow(Thread).to receive_message_chain(:current, :kill)
         #expect(server).to receive(:system).twice
         expect(server).to receive(:copy_commands).twice.and_return([])
