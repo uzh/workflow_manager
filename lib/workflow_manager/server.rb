@@ -106,7 +106,7 @@ module WorkflowManager
       log_puts("Server starts")
     end
     def hello
-      'hello test test, '+ @cluster.name
+      'hello test hoge, '+ @cluster.name
     end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
       @cluster.copy_commands(org_dir, dest_parent_dir, now)
@@ -206,10 +206,13 @@ module WorkflowManager
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       # script_path is only used to generate a log file name
       # It is not used to read the script contents
-      path = input_dataset_tsv_path(script_content)
-      file_list = input_dataset_file_list(path)
-      if input_dataset_exist?(file_list)
-        # wait until the files come
+      gstore_dir, input_dataset = input_dataset_tsv_path(script_content)
+      if gstore_dir and input_dataset
+        path = File.join(gstore_dir, input_dataset)
+        file_list = input_dataset_file_list(path)
+        if input_dataset_exist?(file_list)
+          # wait until the files come
+        end
       end
 
       job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
