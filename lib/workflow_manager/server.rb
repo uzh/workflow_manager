@@ -177,6 +177,8 @@ module WorkflowManager
         time = if start_time 
                  if current_status == 'success' or current_status == 'fail'
                    start_time + '/' + Time.now.strftime("%Y-%m-%d %H:%M:%S")
+                 elsif current_status != last_status
+                   Time.now.strftime("%Y-%m-%d %H:%M:%S")
                  end
                else
                  Time.now.strftime("%Y-%m-%d %H:%M:%S")
@@ -227,7 +229,7 @@ module WorkflowManager
             update_time_status(job_id, current_status, script_path, user, project_number)
 
             # finalize (kill current thred) in case of success or fail 
-            finalize_monitoring(current_status, log_file)
+            finalize_monitoring(current_status, log_file, log_dir)
 
             # wait
             sleep @interval

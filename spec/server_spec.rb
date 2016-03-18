@@ -176,6 +176,16 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
       subject {server.update_time_status('job_id', 'running', 'script_name', 'user', 'project_number')}
       it {is_expected.to be_nil}
     end
+    context 'when current_status==running and last_status==pending' do
+      let(:last_status) {'pending,script_name,start_time,user,project_number'}
+      before do
+        allow(statuses).to receive(:transaction).and_yield({'job_id' => last_status})
+        allow(Time).to receive_message_chain(:now, :strftime).and_return('end_time')
+      end
+      subject {server.update_time_status('job_id', 'running', 'script_name', 'user', 'project_number')}
+      let(:expected) {"running,script_name,end_time,user,project_number"}
+      it {is_expected.to eq expected}
+    end
   end
   describe '#finalize_monitoring' do
     context 'when status == running' do
