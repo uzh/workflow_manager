@@ -163,6 +163,7 @@ module WorkflowManager
           flag = false
           break
         end
+        p file
       end
       flag
     end
@@ -211,24 +212,19 @@ module WorkflowManager
       if gstore_dir and input_dataset_path
         file_list = input_dataset_file_list(input_dataset_path)
         file_list.map!{|file| File.join(gstore_dir, file)}
-        #waiting_max = 60*60*8 # 8h
-        waiting_max = 60*3 # 3m
-        worker = Thread.new(file_list, log_dir, script_path, 0) do |file_list, log_dir, script_path, waiting_time|
+        waiting_max = 60*60*8 # 8h
+        #waiting_max = 60*3 # 3m
+        worker = Thread.new(0, file_list, log_dir, script_path, script_content, sge_options) do |waiting_time, file_list, log_dir, script_path, script_content, sge_options|
           # wait until the files come
-          loop do
-            if waiting_time > waiting_max or go_submit = input_dataset_exist?(file_list)
-              break
-            end
+          until waiting_time > waiting_max or go_submit = input_dataset_exist?(file_list)
+            p file_list
             sleep @interval
             waiting_time += @interval
-            puts "waiting: #{waiting_time}"
           end
-          puts "done waiting"
 
           job_id, log_file, command = if go_submit 
                                         @cluster.submit_job(script_path, script_content, sge_options)
                                       end
-          puts "job_id:#{job_id}, log_file:#{log_file}"
           if job_id and log_file
             # job status check until it finishes with success or fail 
             loop do
