@@ -211,11 +211,12 @@ module WorkflowManager
       waiting_time = 0
       gstore_dir, input_dataset_path = input_dataset_tsv_path(script_content)
       if gstore_dir and input_dataset_path
-        file_list = input_dataset_file_list(input_dataset_path)
-        file_list.map!{|file| File.join(gstore_dir, file)}
         waiting_max = 60*60*8 # 8h
         # wait until the files come
-        until waiting_time > waiting_max or go_submit = input_dataset_exist?(file_list)
+        until waiting_time > waiting_max or 
+          file_list = input_dataset_file_list(input_dataset_path) and
+          file_list.map!{|file| File.join(gstore_dir, file)} and
+          go_submit = input_dataset_exist?(file_list)
           sleep @interval
           waiting_time += @interval
         end
