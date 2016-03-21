@@ -54,12 +54,7 @@ describe Server do
 GSTORE_DIR=/srv/gstore/projects
 INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     }
-    let(:path){
-      [
-        '/srv/gstore/projects',
-        '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv'
-      ]
-    }
+    let(:path){ '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv' }
     subject{server.input_dataset_tsv_path(sample_script)}
     it {is_expected.to eq path}
   end
@@ -80,12 +75,24 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
       it {is_expected.to be_nil}
     end
     context 'when submit_job successed' do
+      pending
+=begin
+      let(:waiting_time){0}
       before do
         allow(cluster).to receive(:submit_job).and_return(['job_id', 'log_file', 'command'])
-        allow(Thread).to receive(:new)
+        allow(Thread).to receive(:new).and_yield('log_file', 'log_dir', 'script_path', waiting_time)
+        allow(server).to receive(:input_dataset_exist?).and_return(true)
+        allow(cluster).to receive(:submit_job).and_return('job_id', 'log_file','command')
+        allow(server).to receive(:check_status)
+        allow(server).to receive(:update_time_status)
+        allow(server).to receive(:finalize_monitoring)
       end
       subject {server.start_monitoring2(script_path, script_content)}
       it {is_expected.to eq 'job_id'}
+=end
+    end
+    context 'when input dataset does not exist' do
+      pending
     end
   end
   describe '#success_or_fail' do
