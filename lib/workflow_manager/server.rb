@@ -163,7 +163,6 @@ module WorkflowManager
           flag = false
           break
         end
-        p file
       end
       flag
     end
@@ -208,41 +207,44 @@ module WorkflowManager
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       # script_path is only used to generate a log file name
       # It is not used to read the script contents
+      go_submit = false
+      waiting_time = 0
       gstore_dir, input_dataset_path = input_dataset_tsv_path(script_content)
       if gstore_dir and input_dataset_path
         file_list = input_dataset_file_list(input_dataset_path)
         file_list.map!{|file| File.join(gstore_dir, file)}
         waiting_max = 60*60*8 # 8h
-        #waiting_max = 60*3 # 3m
-        worker = Thread.new(0, file_list, log_dir, script_path, script_content, sge_options) do |waiting_time, file_list, log_dir, script_path, script_content, sge_options|
-          # wait until the files come
-          until waiting_time > waiting_max or go_submit = input_dataset_exist?(file_list)
-            p file_list
+        # wait until the files come
+        until waiting_time > waiting_max or go_submit = input_dataset_exist?(file_list)
+          sleep @interval
+          waiting_time += @interval
+        end
+      end 
+
+      job_id, log_file, command = if go_submit 
+                                    @cluster.submit_job(script_path, script_content, sge_options)
+                                  else
+                                    raise "stop submitting #{File.basename(script_path)}, since waiting_time #{waiting_time} > #{waiting_max}"
+                                  end
+
+      if job_id and log_file 
+        # job status check until it finishes with success or fail 
+        worker = Thread.new(log_dir, script_path, script_content, sge_options) do |log_dir, script_path, script_content, sge_options|
+          loop do
+            # check status
+            current_status = check_status(job_id, log_file)
+
+            # save time and status
+            update_time_status(job_id, current_status, script_path, user, project_number)
+
+            # finalize (kill current thred) in case of success or fail 
+            finalize_monitoring(current_status, log_file, log_dir)
+
+            # wait
             sleep @interval
-            waiting_time += @interval
-          end
-
-          job_id, log_file, command = if go_submit 
-                                        @cluster.submit_job(script_path, script_content, sge_options)
-                                      end
-          if job_id and log_file
-            # job status check until it finishes with success or fail 
-            loop do
-              # check status
-              current_status = check_status(job_id, log_file)
-
-              # save time and status
-              update_time_status(job_id, current_status, script_path, user, project_number)
-
-              # finalize (kill current thred) in case of success or fail 
-              finalize_monitoring(current_status, log_file, log_dir)
-
-              # wait
-              sleep @interval
-            end # loop
-          end # if
-          job_id
-        end # Thread
+          end # loop
+        end
+        job_id
       end
     end
     def start_monitoring(submit_command, user = 'sushi lover', resubmit = 0, script = '', project_number = 0, sge_options='', log_dir = '')
