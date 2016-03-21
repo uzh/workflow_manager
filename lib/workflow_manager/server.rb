@@ -133,14 +133,17 @@ module WorkflowManager
       end
     end
     def input_dataset_tsv_path(script_content)
-      path = nil
+      gstore_dir = nil
+      input_dataset_path = nil
       script_content.split(/\n/).each do |line|
-        if line =~ /INPUT_DATASET=(.+)/
-          path = $1.chomp
+        if line =~ /GSTORE_DIR=(.+)/
+          gstore_dir = $1.chomp
+        elsif line =~ /INPUT_DATASET=(.+)/
+          input_dataset_path = $1.chomp
           break
         end
       end
-      path
+      [gstore_dir, input_dataset_path]
     end
     def input_dataset_file_list(dataset_tsv_path)
       file_list = []
@@ -204,9 +207,10 @@ module WorkflowManager
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       # script_path is only used to generate a log file name
       # It is not used to read the script contents
-      path = input_dataset_tsv_path(script_content)
-      if path
-        file_list = input_dataset_file_list(path)
+      gstore_dir, input_dataset_path = input_dataset_tsv_path(script_content)
+      if gstore_dir and input_dataset_path
+        file_list = input_dataset_file_list(input_dataset_path)
+        file_list.map!{|file| File.join(gstore_dir, file)}
         #waiting_max = 60*60*8 # 8h
         waiting_max = 60*3 # 3m
         worker = Thread.new(file_list, log_dir, script_path, 0) do |file_list, log_dir, script_path, waiting_time|

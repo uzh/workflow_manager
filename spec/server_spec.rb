@@ -54,7 +54,12 @@ describe Server do
 GSTORE_DIR=/srv/gstore/projects
 INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
     }
-    let(:path){ '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv' }
+    let(:path){ 
+      [
+        '/srv/gstore/projects',
+        '/srv/gstore/projects/p1535/test_masa/input_dataset.tsv'
+      ]
+    }
     subject{server.input_dataset_tsv_path(sample_script)}
     it {is_expected.to eq path}
   end
