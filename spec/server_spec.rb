@@ -73,11 +73,14 @@ INPUT_DATASET=/srv/gstore/projects/p1535/test_masa/input_dataset.tsv"
       allow(server).to receive(:input_dataset_exist?)
     end
     context 'when submit_job failed' do
+      pending
+=begin
       before do
         allow(cluster).to receive(:submit_job)
       end
       subject {server.start_monitoring2(script_path, script_content)}
       it {is_expected.to be_nil}
+=end
     end
     context 'when submit_job successed' do
       pending

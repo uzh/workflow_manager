@@ -133,7 +133,7 @@ module WorkflowManager
       IO.popen('qstat -u "*"') do |io|
         while line=io.gets
           jobid, prior, name, user, state, *others = line.chomp.split
-          if jobid.strip == job_id and state == 'qw'
+          if jobid.strip == job_id and state =~ /qw/
             qstat_flag = true
             break
           end
