@@ -230,6 +230,11 @@ module WorkflowManager
                                   end
 
       if job_id and log_file 
+        # save log_file in logs
+        @logs.transaction do |logs|
+          logs[job_id] = log_file
+        end
+
         # job status check until it finishes with success or fail 
         worker = Thread.new(log_dir, script_path, script_content, sge_options) do |log_dir, script_path, script_content, sge_options|
           loop do
