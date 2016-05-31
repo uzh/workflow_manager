@@ -6,6 +6,6 @@ WorkflowManager::Server.configure do |config|
   config.db_dir = 'dbs'
   config.interval = 30
   config.resubmit = 0
-  config.cluster = WorkflowManager::FGCZCluster.new('FGCZCluster')
+  config.cluster = WorkflowManager::LocalComputer.new('LocalComputer')
 end
 
