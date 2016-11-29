@@ -12,7 +12,7 @@ module WorkflowManager
       @log_dir = log_dir
     end
     def generate_new_job_script(script_name, script_content)
-      new_job_script = File.basename(script_name) + "_" + Time.now.strftime("%Y%m%d%H%M%S")
+      new_job_script = File.basename(script_name) + "_" + Time.now.strftime("%Y%m%d%H%M%S%L")
       new_job_script = File.join(@log_dir, new_job_script)
       open(new_job_script, 'w') do |out|
         out.print script_content
