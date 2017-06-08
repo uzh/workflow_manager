@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20131108-112017'
+Version = '20170608-103901'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -19,6 +19,7 @@ end
 opt = OptionParser.new do |o|
   o.banner = "Usage:\n #{File.basename(__FILE__)} [options]"
 #  o.on(:user, 'sushi lover', '-u user', '--user', 'who submitted?')
+  o.on(:job_ids, nil, '-j job_ids', '--job_ids', 'job id list (e.g. 10001,10002,10003: comma separate without space)')
   o.on(:project, nil, '-p project', '--project', 'project number')
   o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
   o.parse!(ARGV)
@@ -43,4 +44,8 @@ if wfmrc
   end
 end
 workflow_manager = DRbObject.new_with_uri(uri)
-puts workflow_manager.job_list(with_result, project_number)
+if opt.job_ids
+  puts workflow_manager.job_list(with_result, project_number, job_ids:opt.job_ids)
+else
+  puts workflow_manager.job_list(with_result, project_number)
+end

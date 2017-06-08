@@ -365,9 +365,11 @@ module WorkflowManager
       #@statuses.close
       stat
     end
-    def job_list(with_results=false, project_number=nil)
+    def job_list(with_results=false, project_number=nil, job_ids:nil)
       s = []
-      #@statuses.open(@db_stat)
+      job_idsh = if job_ids
+                   Hash[*(job_ids.split(',')).map{|job_id| [job_id, true]}.flatten]
+                 end
       @statuses.transaction do |statuses|
         statuses.each do |key, value|
           if project_number 
@@ -378,7 +380,9 @@ module WorkflowManager
             s << [key, value]
           end
         end
-      #@statuses.close
+      end
+      if job_ids
+        s = s.select{|job_id, stat| job_idsh[job_id]}
       end
       s.sort_by{|key, value| value.split(',')[2]}.reverse.map{|v| v.join(',')}.join("\n")
     end
