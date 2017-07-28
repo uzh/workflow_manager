@@ -420,6 +420,15 @@ module WorkflowManager
                end
       script
     end
+    def get_script_path(job_id)
+      script_file = nil
+      @logs.transaction do |logs|
+        script_file = logs[job_id.to_s]
+      end
+      script_path = if script_file and File.exist?(script_file)
+                      script_file.gsub(/_o\.log/,'')
+                    end
+    end
     def success_or_fail(job_id, log_file)
       msg = if @cluster.job_running?(job_id)
               'running'
