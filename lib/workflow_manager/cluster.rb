@@ -142,7 +142,10 @@ module WorkflowManager
       qstat_flag
     end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
-      commands = if now
+      commands = if now == "force"
+                   target_file = File.join(dest_parent_dir, File.basename(org_dir))
+                   ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
+                 elsif now
                    ["g-req copynow #{org_dir} #{dest_parent_dir}"]
                  else
                    ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
@@ -187,6 +190,48 @@ module WorkflowManager
     end
     def delete_command(target)
       command = "rm -rf #{target}"
+    end
+  end
+
+  class HydraCluster < Cluster
+    def submit_job(script_file, script_content, option='')
+      # TODO
+      if script_name = File.basename(script_file) and script_name =~ /\.sh$/
+        new_job_script = generate_new_job_script(script_name, script_content)
+        new_job_script_base = File.basename(new_job_script)
+        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
+        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
+        #command = "g-sub -o #{log_file} -e #{err_file} #{option} #{new_job_script}"
+        command = "cat #{new_job_script} |ssh hydra 'cat > #{new_job_script_base}; source /etc/profile; module load cluster/largemem; sbatch #{new_job_script_base};'"
+        job_id = `#{command}`
+        job_id = job_id.match(/Submitted batch job (\d+)/)[1]
+        [job_id, log_file, command]
+      end
+    end
+    def job_running?(job_id)
+      # TODO
+    end
+    def job_ends?(log_file)
+      # TODO
+    end
+    def job_pending?(job_id)
+      # TODO
+    end
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
+      # TODO
+    end
+    def kill_command(job_id)
+      # TODO
+      command = "ssh hydra; scancel #{job_id}"
+    end
+    def delete_command(target)
+      # TODO
+    end
+    def cluster_nodes
+      # TODO
+      nodes = {
+        'cluster/largemem' => 'cluster/largemem',
+      }
     end
   end
 end
