@@ -17,8 +17,12 @@ if opt.mode =~ /[development|production]/
   config = File.join(File.dirname(File.expand_path(__FILE__)), "../config/environments/#{opt.mode}.rb")
   opt.mode = nil unless File.exist?(config)
 end
-print "version = #{Version}\n"
-print "mode = #{opt.mode}\n"
+puts "version = #{Version}"
+puts "mode = #{opt.mode}"
+ruby_path = File.join(RbConfig.expand("$(bindir)"), "ruby")
+puts "ruby = #{ruby_path}"
+gem_path = Gem::path
+puts "GEM_PATH = #{gem_path.join(',')}"
 if opt.mode
   config_dir = "./config/environments/"
   FileUtils.mkdir_p config_dir
