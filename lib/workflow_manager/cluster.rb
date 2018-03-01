@@ -92,7 +92,8 @@ module WorkflowManager
 
   class FGCZCluster < Cluster
     def submit_job(script_file, script_content, option='')
-      if script_name = File.basename(script_file) and script_name =~ /\.sh$/
+      if script_name = File.basename(script_file) and script_name =~ /\.sh/
+        script_name = script_name.split(/\.sh/).first + ".sh"
         new_job_script = generate_new_job_script(script_name, script_content)
         new_job_script_base = File.basename(new_job_script)
         log_file = File.join(@log_dir, new_job_script_base + "_o.log")
@@ -101,6 +102,10 @@ module WorkflowManager
         job_id = `#{command}`
         job_id = job_id.match(/Your job (\d+) \(/)[1]
         [job_id, log_file, command]
+      else
+        err_msg = "FGCZCluster#submit_job, ERROR: script_name is not *.sh: #{File.basename(script_file)}"
+        warn err_msg
+        raise err_msg
       end
     end
     def job_running?(job_id)
