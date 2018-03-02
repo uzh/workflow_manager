@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+Version = '20180302-155510'
+
+require 'drb/drb' 
+require 'ruby-progressbar'
+require 'parallel'
+
+unless uri = ARGV[0]
+  puts "Usage:"
+  puts " #{File.basename(__FILE__)} druby://host_name:port_number (options)"
+  puts
+  puts "Example:"
+  puts " #{File.basename(__FILE__)} druby://local_host:4000 -d 10 -r 100 > report.html"
+  puts
+  puts "Options:"
+  puts " -d duration (default: 10 (s))"
+  puts " -r rate: (default: 10 (times))"
+  exit
+end
+duration = if idx = ARGV.index("-d")
+             ARGV[idx+1].to_i
+           else
+             10
+           end
+rate = if idx = ARGV.index("-r")
+         ARGV[idx+1].to_i
+       else
+         10
+       end
+
+template =<<-EOS
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.min.js"></script>
+</head>
+
+<body>
+  <canvas id="stage"></canvas>
+  <script>
+var mydata = {
+  labels: LABELS_ARRAY,
+  datasets: [
+    {
+      label: 'wfm_attack',
+      fill: false,
+      data: DATA_ARRAY,
+    }
+  ]
+};
+
+var options = {
+  title: {    
+    display: true,
+    text: 'Latency'
+  },
+
+  scales: {
+      xAxes: [{
+        position: 'bottom',
+        scaleLabel: {
+          display: true,
+          labelString: 'Elapsed time [s]'
+        },
+        ticks: {
+          callback: function(value) {return (Math.pow(value - Math.round(value), 2) < 0.2/RATE ? Math.round(value) : '')},
+          min: 0,
+          max: DURATION,
+          stepSize: 1
+        }
+      }],
+
+      yAxes: [{
+        scaleLabel: {
+          display: true,
+          labelString: 'Latency [s]'
+        },
+      }]
+  }
+};
+
+var canvas = document.getElementById('stage');
+var chart = new Chart(canvas, {
+  type: 'line',
+  data: mydata,
+  options: options
+}); 
+  </script>
+</body>
+EOS
+
+labels = data = nil
+make_html =->(labels, data){
+  template.gsub(/LABELS_ARRAY/, labels).gsub(/DATA_ARRAY/, data).gsub(/DURATION/, duration.to_s).gsub(/RATE/, rate.to_s)
+}
+
+workflow_manager = DRbObject.new_with_uri(uri)
+threads = rate
+wait_time = duration.to_f/rate
+commands = []
+threads.times do |i|
+  commands << wait_time*i
+end
+
+progress = ProgressBar.create(title: "Progress", total: commands.length, format: '%a %B %p%% %t', output: $stderr)
+result = Parallel.map(commands, in_processes: threads, finish: -> (item, i, res){ progress.increment }) do |wait_time|
+  start_time = Time.now
+  sleep wait_time
+  st = Time.now
+  workflow_manager.hello
+  et = Time.now
+  response_time = et - st
+  elapsed_time = Time.now - start_time
+  [elapsed_time, response_time]
+end
+
+#puts ["Elapsed", "Latency"].join("\t")
+#result.each.with_index do |ela_res|
+#  elapsed_time, response_time = ela_res
+#  puts [elapsed_time, response_time].join("\t")
+#end
+
+labels = "[#{result.map{|x| "'#{x.first}'"}.join(",")}]"
+data = "[#{result.map{|x| "'#{x.last}'"}.join(",")}]"
+puts make_html.(labels, data)
