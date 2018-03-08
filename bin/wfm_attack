@@ -1,22 +1,29 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-Version = '20180302-155510'
+Version = '20180308-150906'
 
 require 'drb/drb' 
 require 'ruby-progressbar'
 require 'parallel'
+require 'tempfile'
 
-unless uri = ARGV[0]
+def help
   puts "Usage:"
   puts " #{File.basename(__FILE__)} druby://host_name:port_number (options)"
   puts
   puts "Example:"
   puts " #{File.basename(__FILE__)} druby://local_host:4000 -d 10 -r 100 > report.html"
+  puts " #{File.basename(__FILE__)} druby://local_host:4000 -d 10 -r 10 -m monitoring -n node-01 > report.html"
   puts
   puts "Options:"
   puts " -d duration (default: 10 (s))"
   puts " -r rate: (default: 10 (times))"
+  puts " -m call_method: [hello, monitoring] (default: hello)"
+  puts " -n sge_option: job submit node, required with -m option"
   exit
+end
+unless uri = ARGV[0]
+  help
 end
 duration = if idx = ARGV.index("-d")
              ARGV[idx+1].to_i
@@ -28,6 +35,21 @@ rate = if idx = ARGV.index("-r")
        else
          10
        end
+
+call_method = if idx = ARGV.index("-m")
+                ARGV[idx+1].to_sym
+              else
+                :hello
+              end
+sge_option = if idx = ARGV.index("-n")
+                ARGV[idx+1]
+             elsif call_method == :monitoring
+               puts
+               puts "WARNING: You need -n option with -m monitoring"
+               puts
+               help
+             end
+
 
 template =<<-EOS
 <head>
@@ -101,12 +123,35 @@ threads.times do |i|
   commands << wait_time*i
 end
 
+call_wfm_func =->(method=:hello){
+  if method == :hello
+    workflow_manager.send(method)
+  elsif method == :monitoring
+    tf = Tempfile.open("test.sh"){|out|
+      out.puts "#!/bin/bash"
+      out.puts
+      out.puts "START"
+      out.puts "sleep 5"
+      out.puts "END"
+      out
+    }
+    job_script = tf.path
+    script_content = File.read(tf.path)
+    user = "sushi_lover"
+    project_number = 1001
+    gsub_options = ["-n", sge_option]
+    gstore_script_dir = "/srv/gstore/projects/p1001/test_wfm_attack/scripts"
+    job_id = workflow_manager.start_monitoring(job_script, user, 0, script_content, project_number, gsub_options.join(' '), gstore_script_dir)
+  end
+}
 progress = ProgressBar.create(title: "Progress", total: commands.length, format: '%a %B %p%% %t', output: $stderr)
 result = Parallel.map(commands, in_processes: threads, finish: -> (item, i, res){ progress.increment }) do |wait_time|
   start_time = Time.now
   sleep wait_time
   st = Time.now
-  workflow_manager.hello
+
+  call_wfm_func.(call_method.to_sym)
+
   et = Time.now
   response_time = et - st
   elapsed_time = Time.now - start_time
