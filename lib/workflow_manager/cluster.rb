@@ -191,7 +191,7 @@ module WorkflowManager
 
   class FGCZCourseCluster < FGCZCluster
     def copy_commands(org_dir, dest_parent_dir, now=nil)
-      commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
+      commands = ["umask 0002; cp -r #{org_dir} #{dest_parent_dir}"]
     end
     def delete_command(target)
       command = "rm -rf #{target}"
