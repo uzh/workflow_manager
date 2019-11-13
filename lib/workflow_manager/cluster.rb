@@ -90,6 +90,42 @@ module WorkflowManager
     end
   end
 
+  class TaskSpooler < LocalComputer
+    def submit_job(script_file, script_content, option='')
+      if script_name = File.basename(script_file) and script_name =~ /\.sh$/
+        new_job_script = generate_new_job_script(script_name, script_content)
+        new_job_script_base = File.basename(new_job_script)
+        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
+        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
+        command = "tsp sh -c 'bash #{new_job_script} 1> #{log_file} 2> #{err_file}'"
+        pid = spawn(command)
+        Process.detach(pid)
+        [pid.to_s, log_file, command]
+      end
+    end
+    def job_running?(pid)
+      command = "tsp"
+      result = IO.popen(command) do |io|
+        flag = false
+        while line=io.gets
+          x = line.split
+          if x[0].to_i == pid.to_i
+            flag = true
+            break
+          end
+        end
+        flag
+      end
+      result
+    end
+    def kill_command(job_id)
+      command = "tsp -k #{job_id}"
+    end
+    def cluster_nodes
+      {"Local with TaskSpooler" => ""}
+    end
+  end
+
   class FGCZCluster < Cluster
     def submit_job(script_file, script_content, option='')
       if script_name = File.basename(script_file) and script_name =~ /\.sh/
