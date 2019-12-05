@@ -99,6 +99,7 @@ module WorkflowManager
         err_file = File.join(@log_dir, new_job_script_base + "_e.log")
         command = "tsp sh -c 'bash #{new_job_script} 1> #{log_file} 2> #{err_file}'"
         job_id = `#{command}`.to_s.chomp
+        sleep 1
         [job_id.to_s, log_file, command]
       end
     end
