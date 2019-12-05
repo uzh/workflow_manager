@@ -98,9 +98,8 @@ module WorkflowManager
         log_file = File.join(@log_dir, new_job_script_base + "_o.log")
         err_file = File.join(@log_dir, new_job_script_base + "_e.log")
         command = "tsp sh -c 'bash #{new_job_script} 1> #{log_file} 2> #{err_file}'"
-        pid = spawn(command)
-        Process.detach(pid)
-        [pid.to_s, log_file, command]
+        job_id = `#{command}`
+        [job_id.to_s, log_file, command]
       end
     end
     def job_running?(pid)
