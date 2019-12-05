@@ -108,7 +108,7 @@ module WorkflowManager
         flag = false
         while line=io.gets
           x = line.split
-          if x[0].to_i == pid.to_i
+          if x[0].to_i == pid.to_i and x[1] == "running"
             flag = true
             break
           end
