@@ -124,7 +124,7 @@ module WorkflowManager
         flag = false
         while line=io.gets
           x = line.split
-          if x[0].to_i == pid.to_i and x[1] == "queued"
+          if x[0].to_i == job_id.to_i and x[1] == "queued"
             flag = true
             break
           end
