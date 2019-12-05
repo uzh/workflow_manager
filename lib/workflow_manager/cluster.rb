@@ -118,6 +118,21 @@ module WorkflowManager
       end
       result
     end
+    def job_pending?(job_id)
+      command = "tsp"
+      result = IO.popen(command) do |io|
+        flag = false
+        while line=io.gets
+          x = line.split
+          if x[0].to_i == pid.to_i and x[1] == "queued"
+            flag = true
+            break
+          end
+        end
+        flag
+      end
+      result
+    end
     def kill_command(job_id)
       command = "tsp -k #{job_id}"
     end
