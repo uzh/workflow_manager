@@ -6,17 +6,36 @@ require 'fileutils'
 require 'csv'
 begin
   require 'kyotocabinet'
-  NO_KYOTO = false
+  DB_MODE = "KyotoCabinet"
 rescue LoadError
-  require 'pstore'
-  class PStore
-    def each
-      self.roots.each do |key|
-        yield(key, self[key])
+  begin
+    require 'redis'
+    DB_MODE = "Redis"
+    class Redis
+      def [](key)
+        self.get(key)
+      end
+      def []=(key, value)
+        self.set(key, value)
+      end
+      def each
+        self.scan_each do |key|
+          value = self.get(key)
+          yield([key, value])
+        end
+      end
+    end
+  rescue LoadError
+    require 'pstore'
+    DB_MODE = "PStore"
+    class PStore
+      def each
+        self.roots.each do |key|
+          yield(key, self[key])
+        end
       end
     end
   end
-  NO_KYOTO = true
 end
 
 module WorkflowManager
@@ -34,6 +53,7 @@ module WorkflowManager
       attr_accessor :interval
       attr_accessor :resubmit
       attr_accessor :cluster
+      attr_accessor :redis_conf
     end
     def self.config=(config)
       @@config = config
@@ -79,12 +99,40 @@ module WorkflowManager
         end
       end
     end
+    class RedisDB
+      def run_redis_server(redis_conf)
+        @pid = fork do
+          exec("redis-server #{redis_conf}")
+        end
+        @redis_thread = Thread.new do
+          Process.waitpid @pid
+        end
+      end
+      def initialize(db_no=0, redis_conf=nil)
+        if db_no==0
+          run_redis_server(redis_conf)
+        end
+        @db = Redis.new(db: db_no)
+      end
+      def transaction
+        #@db.multi do
+          yield(@db)
+        #end
+      end
+    end
 
     def initialize
       @interval = config.interval
       @resubmit = config.resubmit
-      extension = NO_KYOTO ? '.pstore' : '.kch'
-      db_mode = NO_KYOTO ? 'PStore' : 'KyotoCabinet'
+      extension = case DB_MODE
+                    when "PStore"
+                      '.pstore'
+                    when "KyotoCabinet"
+                      '.kch'
+                    when "Redis"
+                      @redis_conf = config.redis_conf
+                      '.rdb'
+                    end
       @db_stat = File.join(config.db_dir, 'statuses'+extension)
       @db_logs  = File.join(config.db_dir, 'logs'+extension)
 
@@ -92,16 +140,32 @@ module WorkflowManager
       @db_dir  = File.expand_path(config.db_dir)
       FileUtils.mkdir_p @log_dir unless File.exist?(@log_dir)
       FileUtils.mkdir_p @db_dir unless File.exist?(@db_dir)
-      #@statuses = KyotoCabinet::DB.new
-      @statuses = NO_KYOTO ? PStoreDB.new(@db_stat) : KyotoDB.new(@db_stat)
-      #@logs = KyotoCabinet::DB.new 
-      @logs = NO_KYOTO ? PStoreDB.new(@db_logs) : KyotoDB.new(@db_logs)
+      @statuses = case DB_MODE
+                    when "PStore"
+                      PStoreDB.new(@db_stat)
+                    when "KyotoCabinet"
+                      KyotoDB.new(@db_stat)
+                    when "Redis"
+                      RedisDB.new(0, @redis_conf)
+                  end
+      @logs = case DB_MODE
+                  when "PStore"
+                    PStoreDB.new(@db_logs)
+                  when "KyotoCabinet"
+                    KyotoDB.new(@db_logs)
+                  when "Redis"
+                    RedisDB.new(1)
+                end
+
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
       @cluster = config.cluster
-      puts("DB = #{db_mode}")
+      puts("DB = #{DB_MODE}")
+      if DB_MODE == "Redis"
+        puts("Redis conf = #{config.redis_conf}")
+      end
       puts("Cluster = #{@cluster.name}")
-      log_puts("DB = #{db_mode}")
+      log_puts("DB = #{DB_MODE}")
       log_puts("Cluster = #{@cluster.name}")
       log_puts("Server starts")
     end

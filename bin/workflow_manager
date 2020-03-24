@@ -32,6 +32,8 @@ if opt.mode
     default_config_dir = File.join(app_dir, "../config/environments")
     default_config_file = File.join(default_config_dir, opt.mode+".rb")
     if File.exist?(default_config_file)
+      default_redis_config_file = File.join(default_config_dir, "redis.conf")
+      FileUtils.cp(default_redis_config_file, config_dir)
       FileUtils.cp(default_config_file, config_file)
     else
       raise "Configure file does not exist: #{config_file}"
