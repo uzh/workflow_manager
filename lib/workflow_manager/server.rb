@@ -100,6 +100,7 @@ module WorkflowManager
       end
     end
     class RedisDB
+      attr_accessor :port
       def run_redis_server(redis_conf)
         @pid = fork do
           exec("redis-server #{redis_conf}")
@@ -108,11 +109,13 @@ module WorkflowManager
           Process.waitpid @pid
         end
       end
-      def initialize(db_no=0, redis_conf=nil)
+      def initialize(db_no=0, redis_conf)
         if db_no==0
           run_redis_server(redis_conf)
         end
-        @db = Redis.new(db: db_no)
+        conf = Hash[*CSV.readlines(redis_conf, col_sep: " ").map{|a| [a.first, a[1,100].join(",")]}.flatten]
+        @port = (conf["port"]||6379).to_i
+        @db = Redis.new(port: @port, db: db_no)
       end
       def transaction
         #@db.multi do
@@ -154,7 +157,7 @@ module WorkflowManager
                   when "KyotoCabinet"
                     KyotoDB.new(@db_logs)
                   when "Redis"
-                    RedisDB.new(1)
+                    RedisDB.new(1, @redis_conf)
                 end
 
       @system_log = File.join(@log_dir, "system.log")
@@ -163,6 +166,7 @@ module WorkflowManager
       puts("DB = #{DB_MODE}")
       if DB_MODE == "Redis"
         puts("Redis conf = #{config.redis_conf}")
+        puts("Redis port = #{@logs.port}")
       end
       puts("Cluster = #{@cluster.name}")
       log_puts("DB = #{DB_MODE}")
