@@ -5,26 +5,26 @@ require 'drb/drb'
 require 'fileutils'
 require 'csv'
 begin
-  require 'kyotocabinet'
-  DB_MODE = "KyotoCabinet"
-rescue LoadError
-  begin
-    require 'redis'
-    DB_MODE = "Redis"
-    class Redis
-      def [](key)
-        self.get(key)
-      end
-      def []=(key, value)
-        self.set(key, value)
-      end
-      def each
-        self.scan_each do |key|
-          value = self.get(key)
-          yield([key, value])
-        end
+  require 'redis'
+  DB_MODE = "Redis"
+  class Redis
+    def [](key)
+      self.get(key)
+    end
+    def []=(key, value)
+      self.set(key, value)
+    end
+    def each
+      self.scan_each do |key|
+        value = self.get(key)
+        yield([key, value])
       end
     end
+  end
+rescue LoadError
+  begin
+    require 'kyotocabinet'
+    DB_MODE = "KyotoCabinet"
   rescue LoadError
     require 'pstore'
     DB_MODE = "PStore"
