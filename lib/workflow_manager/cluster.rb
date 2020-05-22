@@ -38,6 +38,8 @@ module WorkflowManager
     end
     def default_node
     end
+    def node_list
+    end
   end
 
   class LocalComputer < Cluster
@@ -237,6 +239,63 @@ module WorkflowManager
         'fgcz-h-009: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-009',
         'fgcz-h-010: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-010',
       }
+    end
+    def node_list
+      node2scr = {}
+      command = "qhost -F scratch"
+      keep = nil
+      IO.popen(command) do |out|
+        while line=out.gets
+          hostname, arch, ncpu, loading, memtot, memuse, *others = line.split
+          if hostname =~ /fgcz/
+            keep = hostname
+          elsif scratch_ = line.chomp.split.last and
+                scratch = scratch_.split('=').last
+            node2scr[keep] = scratch.to_i
+            keep = nil
+          end
+        end
+      end
+
+      list = {}
+      keep = nil
+      command = 'qhost -q'
+      IO.popen(command) do |out|
+        while line=out.gets
+          # HOSTNAME                ARCH         NCPU  LOAD  MEMTOT  MEMUSE  SWAPTO  SWAPUS
+          hostname, arch, ncpu, loading, memtot, memuse, *others = line.split
+          if hostname =~ /fgcz/
+            #puts [hostname, ncpu, loading, memtot, memuse].join("\t")
+            mem = memtot.gsub(/G/, '').to_i
+            keep = [hostname, ncpu, "#{mem}G"]
+          elsif hostname == "GT" and keep and cores = line.chomp.split.last and cores !~ /[du]/
+            hostname = keep.shift
+            keep[0] = cores
+            if scr = node2scr[hostname] and scr >= 1000
+              scr = "%.1f" % (scr.to_f / 1000)
+              scr << "T"
+            else
+              scr = scr.to_s + "G"
+            end
+            keep << scr
+            list[hostname] = keep
+            keep = nil
+          end
+        end
+      end
+
+      # reformat
+      nodes = {}
+      list.each do |hostname, specs|
+        # 20190823 masa tentatively off use f47
+        unless hostname =~ /fgcz-c-047/
+          cores, ram, scr = specs
+          key = "#{hostname}: cores #{cores}, ram #{ram}, scr #{scr}"
+          value = hostname
+          nodes[key] = value
+        end
+      end
+      nodes
     end
   end
 
