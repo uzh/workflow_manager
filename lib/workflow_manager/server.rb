@@ -509,9 +509,9 @@ module WorkflowManager
             end
     end
     alias_method :check_status, :success_or_fail
-  end
-  def cluster_node_list
-    @cluster.node_list
+    def cluster_node_list
+      @cluster.node_list
+    end
   end
 end
 
