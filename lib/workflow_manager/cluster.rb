@@ -349,4 +349,87 @@ module WorkflowManager
       }
     end
   end
+
+  class FGCZDevian10Cluster < Cluster
+    def submit_job(script_file, script_content, option='')
+      if script_name = File.basename(script_file) and script_name =~ /\.sh/
+        script_name = script_name.split(/\.sh/).first + ".sh"
+        new_job_script = generate_new_job_script(script_name, script_content)
+        new_job_script_base = File.basename(new_job_script)
+        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
+        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
+        #command = "g-sub -o #{log_file} -e #{err_file} #{option} #{new_job_script}"
+        command = "sbatch -o #{log_file} -e #{err_file} #{new_job_script}"
+        job_id = `#{command}`
+        job_id = job_id.match(/Your job (\d+) \(/)[1]
+        [job_id, log_file, command]
+      else
+        err_msg = "FGCZDevian10Cluster#submit_job, ERROR: script_name is not *.sh: #{File.basename(script_file)}"
+        warn err_msg
+        raise err_msg
+      end
+    end
+    def job_running?(job_id)
+     qstat_flag = false
+      IO.popen('squeue') do |io|
+        while line=io.gets
+          # ["JOBID", "PARTITION", "NAME", "USER", "ST", "TIME", "NODES", "NODELIST(REASON)"]
+          # ["206", "employee", "test.sh", "masaomi", "R", "0:03", "1", "fgcz-h-030"]
+          jobid, partition, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state == 'R'
+            qstat_flag = true
+            break
+          end
+        end
+      end
+      qstat_flag
+    end
+    def job_ends?(log_file)
+      log_flag = false
+      IO.popen("tail -n 10 #{log_file} 2> /dev/null") do |io|
+        while line=io.gets
+          if line =~ /__SCRIPT END__/
+            log_flag = true
+            break
+          end
+        end
+      end
+      log_flag
+    end
+    def job_pending?(job_id)
+     qstat_flag = false
+      IO.popen('squeue') do |io|
+        while line=io.gets
+          jobid, partition, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state =~ /PD/
+            qstat_flag = true
+            break
+          end
+        end
+      end
+      qstat_flag
+    end
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
+      commands = if now == "force"
+                   target_file = File.join(dest_parent_dir, File.basename(org_dir))
+                   ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
+                 elsif now
+                   ["g-req copynow #{org_dir} #{dest_parent_dir}"]
+                 else
+                   ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+                 end
+    end
+    def kill_command(job_id)
+      command = "scancel #{job_id}"
+    end
+    def delete_command(target)
+      command = "g-req remove #{target}"
+    end
+    def cluster_nodes
+      nodes = {
+        'fgcz-h-900: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-900',
+        'fgcz-h-901: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-901',
+      }
+    end
+  end
 end
