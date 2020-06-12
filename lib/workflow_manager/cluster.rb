@@ -513,14 +513,14 @@ module WorkflowManager
         'fgcz-h-907: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-907',
         'fgcz-h-908: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-908',
         'fgcz-h-909: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-909',
-        'fgcz-h-910: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-900',
-        'fgcz-h-911: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-901',
-        'fgcz-h-912: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-902',
-        'fgcz-h-913: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-903',
-        'fgcz-h-914: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-904',
-        'fgcz-h-915: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-905',
-        'fgcz-h-916: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-906',
-        'fgcz-h-917: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-907',
+        'fgcz-h-910: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-910',
+        'fgcz-h-911: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-911',
+        'fgcz-h-912: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-912',
+        'fgcz-h-913: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-913',
+        'fgcz-h-914: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-914',
+        'fgcz-h-915: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-915',
+        'fgcz-h-916: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-916',
+        'fgcz-h-917: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-917',
       }
     end
   end
