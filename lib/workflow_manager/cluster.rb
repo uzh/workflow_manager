@@ -504,9 +504,23 @@ module WorkflowManager
     def cluster_nodes
       nodes = {
         'fgcz-h-900: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-900',
-        'fgcz-h-901: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-901',
-        'fgcz-h-902: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-902',
-        'fgcz-h-903: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-903',
+        'fgcz-h-901: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-901',
+        'fgcz-h-902: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-902',
+        'fgcz-h-903: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-903',
+        'fgcz-h-904: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-904',
+        'fgcz-h-905: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-905',
+        'fgcz-h-906: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-906',
+        'fgcz-h-907: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-907',
+        'fgcz-h-908: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-908',
+        'fgcz-h-909: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-909',
+        'fgcz-h-910: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-900',
+        'fgcz-h-911: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-901',
+        'fgcz-h-912: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-902',
+        'fgcz-h-913: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-903',
+        'fgcz-h-914: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-904',
+        'fgcz-h-915: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-905',
+        'fgcz-h-916: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-906',
+        'fgcz-h-917: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-907',
       }
     end
   end
