@@ -556,7 +556,7 @@ module WorkflowManager
         err_file = File.join(@log_dir, new_job_script_base + "_e.log")
         #command = "g-sub -o #{log_file} -e #{err_file} -q user #{option} #{new_job_script}"
         sbatch_options = parse(option)
-        command = "sbatch -o #{log_file} -e #{err_file} #{sbatch_options} #{new_job_script}"
+        command = "sbatch -o #{log_file} -e #{err_file} -N 1 #{sbatch_options} #{new_job_script}"
         puts command
         job_id = `#{command}`
         job_id = job_id.chomp.split.last
