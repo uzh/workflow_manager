@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20160317-153614'
+Version = '20200722-161135'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -16,6 +16,7 @@ opt = OptionParser.new do |o|
   o.on(:nodes, '-n nodes', '--nodes', 'Comma separated list of nodes to submit to for g-sub')
   o.on(:ram, '-r RAM', '--RAM', 'Amount of RAM to request in Gigs for g-sub')
   o.on(:scratch, '-s scratch', '--scratch', 'Amount of scratch space to request in Gigs for g-sub')
+  o.on(:queue, '-q queue', '--queue', 'Queue name')
   o.parse!(ARGV)
 end
 unless script_file = ARGV[0] and script_file =~ /\.sh/
