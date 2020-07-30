@@ -308,6 +308,7 @@ module WorkflowManager
     end
   end
 
+
   class HydraCluster < Cluster
     def submit_job(script_file, script_content, option='')
       # TODO
@@ -628,6 +629,15 @@ module WorkflowManager
         'fgcz-h-110: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-110',
         'fgcz-h-111: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-111',
       }
+    end
+  end
+
+  class FGCZDebian10DemoCluster < FGCZDebian10Cluster
+    def copy_commands(org_dir, dest_parent_dir, now=nil)
+      commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
+    end
+    def delete_command(target)
+      command = "rm -rf #{target}"
     end
   end
 end
