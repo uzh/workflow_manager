@@ -435,97 +435,6 @@ module WorkflowManager
     end
   end
 
-  class FGCZDebian10CourseCluster < Cluster
-    def submit_job(script_file, script_content, option='')
-      if script_name = File.basename(script_file) and script_name =~ /\.sh/
-        script_name = script_name.split(/\.sh/).first + ".sh"
-        new_job_script = generate_new_job_script(script_name, script_content)
-        new_job_script_base = File.basename(new_job_script)
-        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
-        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
-        command = "g-sub -o #{log_file} -e #{err_file} -q course #{option} #{new_job_script}"
-        job_id = `#{command}`
-        job_id = job_id.chomp.split.last
-        [job_id, log_file, command]
-      else
-        err_msg = "FGCZDebian10CourseCluster#submit_job, ERROR: script_name is not *.sh: #{File.basename(script_file)}"
-        warn err_msg
-        raise err_msg
-      end
-    end
-    def job_running?(job_id)
-     qstat_flag = false
-      IO.popen('squeue') do |io|
-        while line=io.gets
-          # ["JOBID", "PARTITION", "NAME", "USER", "ST", "TIME", "NODES", "NODELIST(REASON)"]
-          # ["206", "employee", "test.sh", "masaomi", "R", "0:03", "1", "fgcz-h-030"]
-          jobid, partition, name, user, state, *others = line.chomp.split
-          if jobid.strip == job_id and state == 'R'
-            qstat_flag = true
-            break
-          end
-        end
-      end
-      qstat_flag
-    end
-    def job_ends?(log_file)
-      log_flag = false
-      IO.popen("tail -n 10 #{log_file} 2> /dev/null") do |io|
-        while line=io.gets
-          if line =~ /__SCRIPT END__/
-            log_flag = true
-            break
-          end
-        end
-      end
-      log_flag
-    end
-    def job_pending?(job_id)
-     qstat_flag = false
-      IO.popen('squeue') do |io|
-        while line=io.gets
-          jobid, partition, name, user, state, *others = line.chomp.split
-          if jobid.strip == job_id and state =~ /PD/
-            qstat_flag = true
-            break
-          end
-        end
-      end
-      qstat_flag
-    end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
-      commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
-    end
-    def kill_command(job_id)
-      command = "scancel #{job_id}"
-    end
-    def delete_command(target)
-      command = "rm -rf #{target}"
-    end
-    def cluster_nodes
-      nodes = {
-        'fgcz-h-900: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-900',
-        'fgcz-h-901: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-901',
-        'fgcz-h-902: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-902',
-        'fgcz-h-903: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-903',
-        'fgcz-h-904: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-904',
-        'fgcz-h-905: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-905',
-        'fgcz-h-906: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-906',
-        'fgcz-h-907: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-907',
-        'fgcz-h-908: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-908',
-        'fgcz-h-909: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-909',
-        'fgcz-h-910: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-910',
-        'fgcz-h-911: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-911',
-        'fgcz-h-912: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-912',
-        'fgcz-h-913: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-913',
-        'fgcz-h-914: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-914',
-        'fgcz-h-915: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-915',
-        'fgcz-h-916: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-916',
-        'fgcz-h-917: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-917',
-      }
-    end
-  end
-
   class FGCZDebian10Cluster < Cluster
     def parse(options)
       options = options.split
@@ -538,14 +447,14 @@ module WorkflowManager
       scratch = if i = options.index("-s")
                   options[i+1]
                 end
-      queue = if i = options.index("-q")
-                options[i+1]
-              end
+      partition = if i = options.index("-p")
+                    options[i+1]
+                  end
       new_options = []
       new_options << "--mem=#{ram}G" if ram
       new_options << "-n #{cores}" if cores
       new_options << "--tmp=#{scratch}G" if scratch
-      new_options << "-p #{queue}" if queue
+      new_options << "-p #{partition}" if partition
       new_options.join(" ")
     end
     def submit_job(script_file, script_content, option='')
