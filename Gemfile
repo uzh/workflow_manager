@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in workflow_manager.gemspec
-gemspec
+gem 'redis'
+gem 'workflow_manager', :path => '/srv/GT/analysis/masaomi/FGCZ/prototype_workflow_manager_with_sidekiq_20210122/workflow_manager/'

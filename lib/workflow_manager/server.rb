@@ -174,7 +174,7 @@ module WorkflowManager
       log_puts("Server starts")
     end
     def hello
-      'hello test hoge, '+ @cluster.name
+      'hello hoge hoge bar boo bundle, '+ @cluster.name
     end
     def copy_commands(org_dir, dest_parent_dir, now=nil)
       @cluster.copy_commands(org_dir, dest_parent_dir, now)

@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# Version = '20210618-115149'
+
+#redis_pid = fork do
+#  exec("redis-server config/environments/redis.conf")
+#end
+
+workflow_manager_pid = fork do
+  exec("bundle exec workflow_manager -d druby://fgcz-h-032:40005 -m production")
+end
+
+sleep 1
+
+sidekiq_pid = fork do
+  exec("sidekiq -C config/environments/sidekiq.yml -r ./lib/worker4.rb")
+end
+
+sleep 1
+
+begin
+  Process.waitall
+  puts "__END__"
+rescue SignalException
+  Process.kill("HUP", sidekiq_pid)
+  sleep 1
+#  Process.kill("HUP", redis_pid)
+#  sleep 1
+  Process.kill("HUP", workflow_manager_pid)
+  puts "__CORRECTLY_END__"
+end
+
