@@ -1,6 +1,8 @@
 require 'sidekiq'
 require 'redis'
 
+WORKER_INTERVAL = 10 # [s]
+
 Sidekiq.configure_server do |config|
   config.redis = { url: 'redis://localhost:6380/3' }
 end
@@ -63,7 +65,7 @@ class JobWorker
         db2[project_id] = project_jobs.to_a.flatten.last(100).to_s
       end
       pre_state = state
-      sleep 10
+      sleep WORKER_INTERVAL
     end while state =~ /RUNNING/  or state =~ /PENDING/ or state =~ /---/
   end
 end
