@@ -4,6 +4,9 @@
 require 'drb/drb' 
 require 'fileutils'
 require 'csv'
+
+require 'job_checker'
+
 begin
   require 'redis'
   DB_MODE = "Redis"
@@ -272,6 +275,19 @@ module WorkflowManager
         Thread.current.kill
       end
     end
+    def start_monitoring3(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
+      #script_file = "./test/test_job1.sh"
+      #script_content = File.read(script_file)
+      #log_dir = "./logs"
+      script_basename = File.basename(script_path)
+      #submit_command = @cluster.submit_job(script_path, script_content, sge_options)
+      job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
+      p command
+      #JobWorker.perform_async(project_number, log_dir, script_basename, script_content, user)
+      JobWorker.perform_async(job_id, script_basename, log_file, user, project_number)
+      #p "submitted test_job1.sh"
+    end
+
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       # script_path is only used to generate a log file name
       # It is not used to read the script contents
