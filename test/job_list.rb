@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-# Version = '20210625-095523'
+# Version = '20210723-134812'
 
-
+PORT = (ARGV[0]||6380).to_i
 require 'redis'
-db0 = Redis.new(port: 6380, db: 0)
-db1 = Redis.new(port: 6380, db: 1)
-db2 = Redis.new(port: 6380, db: 2)
+db0 = Redis.new(port: PORT, db: 0)
+db1 = Redis.new(port: PORT, db: 1)
+db2 = Redis.new(port: PORT, db: 2)
 #db3 = Redis.new(port: 6380, db: 3)
 
 class Redis
