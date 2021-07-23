@@ -162,6 +162,7 @@ module WorkflowManager
                   when "Redis"
                     RedisDB.new(1, @redis_conf)
                 end
+      @jobs = RedisDB.new(2, @redis_conf)
 
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
@@ -280,14 +281,13 @@ module WorkflowManager
       #script_content = File.read(script_file)
       #log_dir = "./logs"
       script_basename = File.basename(script_path)
-      #submit_command = @cluster.submit_job(script_path, script_content, sge_options)
       job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
-      p command
-      #JobWorker.perform_async(project_number, log_dir, script_basename, script_content, user)
+      #p command
+      #p log_file
+      #p job_id
       JobWorker.perform_async(job_id, script_basename, log_file, user, project_number)
-      #p "submitted test_job1.sh"
+      job_id
     end
-
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
       # script_path is only used to generate a log file name
       # It is not used to read the script contents
@@ -454,15 +454,17 @@ module WorkflowManager
       job_idsh = if job_ids
                    Hash[*(job_ids.split(',')).map{|job_id| [job_id, true]}.flatten]
                  end
-      @statuses.transaction do |statuses|
-        statuses.each do |key, value|
-          if project_number 
-            if x = value.split(/,/)[4].to_i==project_number.to_i
-              s << [key, value]
-            end
-          else
-            s << [key, value]
+      s_ = {}
+      unless job_ids
+        @jobs.transaction do |jobs|
+          if project_jobs = jobs[project_number]
+            s_ = Hash[*eval(project_jobs)]
           end
+        end
+      end
+      @statuses.transaction do |statuses|
+        s_.each do |job_id, stat|
+          s << [job_id, statuses[job_id]]
         end
       end
       if job_ids

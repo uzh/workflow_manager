@@ -47,12 +47,11 @@ class JobWorker
     @start_time = nil
     begin
       command = "sacct --jobs=#{job_id} --format=state"
-      puts command
+      #puts command
       ret = `#{command}`
       #print ret
       state = ret.split(/\n/).last.strip
-      puts "state: #{state}"
-      #db.set(job_id, state)
+      #puts "state: #{state}"
       db0[job_id] = update_time_status(state, script_basename, user, project_id)
 
       unless state == pre_state
@@ -60,9 +59,8 @@ class JobWorker
         project_jobs = eval((db2[project_id]||[]).to_s)
         project_jobs = Hash[*project_jobs]
         project_jobs[job_id] = state
-        p project_jobs
+        #p project_jobs
         db2[project_id] = project_jobs.to_a.flatten.last(200).to_s
-        #db2[project_id] = project_jobs.to_s
       end
       pre_state = state
       sleep WORKER_INTERVAL
