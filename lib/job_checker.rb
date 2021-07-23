@@ -2,13 +2,24 @@ require 'sidekiq'
 require 'redis'
 
 WORKER_INTERVAL = 10 # [s]
+REDIS_CONF = File.expand_path("../../config/environments/redis.conf", __FILE__)
+PORT = if File.exist?(REDIS_CONF)
+         redis_conf = Hash[*File.readlines(REDIS_CONF).map{|line| line.chomp.split}.map{|e| [e[0], e[1,100].join(",")]}.flatten]
+         redis_conf["port"].to_i
+       else
+         6379
+       end
+SIDEKIQ_URL = "redis://localhost:#{PORT}/3"
+warn "redis.conf: #{REDIS_CONF}"
+warn "Redis port: #{PORT}"
+warn "Sidekiq URL: #{SIDEKIQ_URL}"
 
 Sidekiq.configure_server do |config|
-  config.redis = { url: 'redis://localhost:6380/3' }
+  config.redis = { url: SIDEKIQ_URL }
 end
 
 Sidekiq.configure_client do |config|
-  config.redis = { url: 'redis://localhost:6380/3' }
+  config.redis = { url: SIDEKIQ_URL }
 end
 
 class Redis
@@ -39,9 +50,9 @@ class JobWorker
 
   def perform(job_id, script_basename, log_file, user, project_id)
     puts "JobID: #{job_id}"
-    db0 = Redis.new(port: 6380, db: 0) # state + alpha DB
-    db1 = Redis.new(port: 6380, db: 1) # log DB
-    db2 = Redis.new(port: 6380, db: 2) # project jobs DB
+    db0 = Redis.new(port: PORT, db: 0) # state + alpha DB
+    db1 = Redis.new(port: PORT, db: 1) # log DB
+    db2 = Redis.new(port: PORT, db: 2) # project jobs DB
     db1[job_id] = log_file
     pre_state = nil
     @start_time = nil
