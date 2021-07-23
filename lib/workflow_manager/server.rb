@@ -277,14 +277,13 @@ module WorkflowManager
       end
     end
     def start_monitoring3(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')
-      #script_file = "./test/test_job1.sh"
-      #script_content = File.read(script_file)
-      #log_dir = "./logs"
       script_basename = File.basename(script_path)
       job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
       #p command
       #p log_file
       #p job_id
+      puts "JobID: #{job_id}"
+      sleep 1
       JobWorker.perform_async(job_id, script_basename, log_file, user, project_number)
       job_id
     end
