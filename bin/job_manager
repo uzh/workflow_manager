@@ -1,13 +1,24 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-# Version = '20210625-171607'
+# Version = '20210723-163220'
 
-#redis_pid = fork do
-#  exec("redis-server config/environments/redis.conf")
-#end
+require 'optparse'
+Version = WorkflowManager::VERSION
+unless ARGV[0]
+  puts <<-eos
+    Version: #{Version}\nUsage:\n #{File.basename(__FILE__)} -d [druby://host:port]
+  eos
+  exit
+end
 
+uri = if i = ARGV.index("-d")
+        ARGV[i+1]
+      else
+        "druby://localhost:40001"
+      end
 workflow_manager_pid = fork do
-  exec("bundle exec workflow_manager -d druby://fgcz-h-032:40005 -m production")
+  #exec("bundle exec workflow_manager -d druby://fgcz-h-032:40005 -m production")
+  exec("bundle exec workflow_manager -d #{uri} -m production")
 end
 
 sleep 1
