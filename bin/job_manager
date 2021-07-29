@@ -8,7 +8,7 @@ Version = WorkflowManager::VERSION
 opt = OptionParser.new do |o|
   o.banner = "Version: #{Version}\nUsage:\n #{File.basename(__FILE__)} -d [druby://host:port] -m [development|production]"
   o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
-  o.on(:mode, 'development', '-m mode', '--mode', 'development|production (default: development)')
+  o.on(:mode, 'production', '-m mode', '--mode', 'development|production (default: production)')
   o.parse!(ARGV)
 end
 
@@ -43,4 +43,20 @@ if opt.mode
 end
 DRb.start_service(uri, WorkflowManager::Server.new) 
 puts DRb.uri
-DRb.thread.join
+#DRb.thread.join
+
+sleep 1
+
+sidekiq_pid = fork do
+  exec("sidekiq -C config/environments/sidekiq.yml -r ./lib/job_checker.rb")
+end
+
+begin
+  DRb.thread.join
+  puts "__END__"
+rescue SignalException
+  Process.kill("HUP", sidekiq_pid)
+  sleep 1
+  puts "__CORRECTLY_END__"
+end
+
