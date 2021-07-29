@@ -184,7 +184,7 @@ module WorkflowManager
       @cluster.copy_commands(org_dir, dest_parent_dir, now)
     end
     def kill_job(job_id)
-      status(job_id, 'fail')
+      status(job_id, 'FAIL')
       status = `#{@cluster.kill_command(job_id)}`
     end
     def delete_command(target)
