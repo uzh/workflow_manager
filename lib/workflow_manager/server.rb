@@ -284,7 +284,7 @@ module WorkflowManager
       #p job_id
       puts "JobID: #{job_id}"
       sleep 1
-      JobWorker.perform_async(job_id, script_basename, log_file, user, project_number)
+      JobChecker.perform_async(job_id, script_basename, log_file, user, project_number)
       job_id
     end
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')

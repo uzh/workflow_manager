@@ -27,7 +27,7 @@ class Redis
   alias_method :[]=, :set
 end
 
-class JobWorker
+class JobChecker
   include Sidekiq::Worker
   sidekiq_options queue: :default, retry: 5
 
