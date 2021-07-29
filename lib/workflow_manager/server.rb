@@ -433,7 +433,7 @@ module WorkflowManager
       #@statuses.open(@db_stat)
       @statuses.transaction do |statuses|
         if new_status and stat = statuses[job_id.to_s]
-          status_list = ['success', 'running', 'pending', 'fail']
+          status_list = ['CONPLETED', 'RUNNING', 'PENDING', 'FAIL']
           if status_list.include?(new_status)
             items = stat.split(/,/)
             items.shift
