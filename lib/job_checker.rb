@@ -49,7 +49,7 @@ class JobChecker
   end
 
   def perform(job_id, script_basename, log_file, user, project_id)
-    puts "JobID: #{job_id}"
+    puts "JobID (in JobChecker): #{job_id}"
     db0 = Redis.new(port: PORT, db: 0) # state + alpha DB
     db1 = Redis.new(port: PORT, db: 1) # log DB
     db2 = Redis.new(port: PORT, db: 2) # project jobs DB

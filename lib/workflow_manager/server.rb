@@ -282,7 +282,7 @@ module WorkflowManager
       #p command
       #p log_file
       #p job_id
-      puts "JobID: #{job_id}"
+      puts "JobID (in WorkflowManager): #{job_id}"
       sleep 1
       JobChecker.perform_async(job_id, script_basename, log_file, user, project_number)
       job_id
