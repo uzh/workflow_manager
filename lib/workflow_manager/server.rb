@@ -176,6 +176,25 @@ module WorkflowManager
       log_puts("DB = #{DB_MODE}")
       log_puts("Cluster = #{@cluster.name}")
       log_puts("Server starts")
+      log_puts("Recovery check")
+      recovery_job_checker
+    end
+    def recovery_job_checker
+      @logs.transaction do |logs|
+      @statuses.transaction do |statuses|
+        statuses.each do |job_id, status|
+          # puts [job_id, status].join(",")
+          # 120249,RUNNING,QC_ventricles_100k.sh,2021-07-30 09:47:04/2021-07-30 09:47:04,masaomi,1535
+          stat, script_basename, time, user, project_number = status.split(",")
+          if stat == "RUNNING" or stat == "PENDING"
+            log_file = logs[job_id]
+            log_puts("JobID (in recovery check): #{job_id}")
+            puts "JobID (in recovery check): #{job_id}"
+            JobChecker.perform_async(job_id, script_basename, log_file, user, project_number)
+          end
+        end
+      end
+      end
     end
     def hello
       'hello hoge hoge bar boo bundle, '+ @cluster.name
