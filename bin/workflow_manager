@@ -33,7 +33,9 @@ if opt.mode
     default_config_file = File.join(default_config_dir, opt.mode+".rb")
     if File.exist?(default_config_file)
       default_redis_config_file = File.join(default_config_dir, "redis.conf")
+      default_sidekiq_config_file = File.join(default_config_dir, "sidekiq.conf")
       FileUtils.cp(default_redis_config_file, config_dir)
+      FileUtils.cp(default_sidekiq_config_file, config_dir)
       FileUtils.cp(default_config_file, config_file)
     else
       raise "Configure file does not exist: #{config_file}"
@@ -48,7 +50,9 @@ puts DRb.uri
 sleep 1
 
 sidekiq_pid = fork do
-  exec("sidekiq -C config/environments/sidekiq.yml -r ./lib/job_checker.rb")
+  app_dir = File.expand_path('..', __FILE__)
+  job_checker = File.join(app_dir, "../lib/job_checker.rb")
+  exec("sidekiq -C config/environments/sidekiq.yml -r #{job_checker}")
 end
 
 begin
