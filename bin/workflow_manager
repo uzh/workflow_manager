@@ -33,7 +33,7 @@ if opt.mode
     default_config_file = File.join(default_config_dir, opt.mode+".rb")
     if File.exist?(default_config_file)
       default_redis_config_file = File.join(default_config_dir, "redis.conf")
-      default_sidekiq_config_file = File.join(default_config_dir, "sidekiq.conf")
+      default_sidekiq_config_file = File.join(default_config_dir, "sidekiq.yml")
       FileUtils.cp(default_redis_config_file, config_dir)
       FileUtils.cp(default_sidekiq_config_file, config_dir)
       FileUtils.cp(default_config_file, config_file)
