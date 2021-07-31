@@ -177,6 +177,7 @@ module WorkflowManager
       log_puts("Cluster = #{@cluster.name}")
       log_puts("Server starts")
       log_puts("Recovery check")
+      sleep 2
       recovery_job_checker
     end
     def recovery_job_checker
