@@ -8,4 +8,4 @@ which g-sub
 which g-req
 mkdir -p logs
 mkdir -p dbs
-bundle exec workflow_manager -d druby://fgcz-h-032:40001
+bundle exec workflow_manager -d druby://fgcz-h-031:40001
