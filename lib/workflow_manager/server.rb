@@ -473,17 +473,23 @@ module WorkflowManager
       job_idsh = if job_ids
                    Hash[*(job_ids.split(',')).map{|job_id| [job_id, true]}.flatten]
                  end
-      s_ = {}
-      unless job_ids
+      if project_number
+        s_ = {}
         @jobs.transaction do |jobs|
           if project_jobs = jobs[project_number]
             s_ = Hash[*eval(project_jobs)]
           end
         end
-      end
-      @statuses.transaction do |statuses|
-        s_.each do |job_id, stat|
-          s << [job_id, statuses[job_id]]
+        @statuses.transaction do |statuses|
+          s_.each do |job_id, stat|
+            s << [job_id, statuses[job_id]]
+          end
+        end
+      else
+        @statuses.transaction do |statuses|
+          statuses.each do |key, value|
+            s << [key, value]
+          end
         end
       end
       if job_ids
