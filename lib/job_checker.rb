@@ -40,15 +40,15 @@ class JobChecker
     end
     new_job_script
   end
-  def update_time_status(status, script_basename, user, project_number)
+  def update_time_status(status, script_basename, user, project_number, next_dataset_id)
     unless @start_time
       @start_time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
     time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-    [status, script_basename, [@start_time, time].join("/"), user, project_number].join(',')
+    [status, script_basename, [@start_time, time].join("/"), user, project_number, next_dataset_id].join(',')
   end
 
-  def perform(job_id, script_basename, log_file, user, project_id)
+  def perform(job_id, script_basename, log_file, user, project_id, next_dataset_id=nil)
     puts "JobID (in JobChecker): #{job_id}"
     db0 = Redis.new(port: PORT, db: 0) # state + alpha DB
     db1 = Redis.new(port: PORT, db: 1) # log DB
@@ -63,10 +63,10 @@ class JobChecker
       #print ret
       state = ret.split(/\n/).last.strip
       #puts "state: #{state}"
-      db0[job_id] = update_time_status(state, script_basename, user, project_id)
+      db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id)
 
       unless state == pre_state
-        db0[job_id] = update_time_status(state, script_basename, user, project_id)
+        db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id)
         project_jobs = eval((db2[project_id]||[]).to_s)
         project_jobs = Hash[*project_jobs]
         project_jobs[job_id] = state
