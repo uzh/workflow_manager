@@ -163,6 +163,7 @@ module WorkflowManager
                     RedisDB.new(1, @redis_conf)
                 end
       @jobs = RedisDB.new(2, @redis_conf)
+      @trees = RedisDB.new(4, @redis_conf)
 
       @system_log = File.join(@log_dir, "system.log")
       @mutex = Mutex.new
@@ -554,6 +555,19 @@ module WorkflowManager
     alias_method :check_status, :success_or_fail
     def cluster_node_list
       @cluster.node_list
+    end
+    def save_dataset_tree(project_number, json)
+      @trees.transaction do |trees|
+        trees[project_number] = json
+      end
+      json
+    end
+    def load_dataset_tree(project_number)
+      json = nil
+      @trees.transaction do |trees|
+        json = trees[project_number]
+      end
+      json
     end
   end
 end
