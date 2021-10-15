@@ -1,6 +1,9 @@
 require 'sidekiq'
 require 'redis'
 
+require 'uri'
+require 'net/http'
+
 WORKER_INTERVAL = 10 # [s]
 REDIS_CONF = File.expand_path("../../config/environments/redis.conf", __FILE__)
 PORT = if File.exist?(REDIS_CONF)
@@ -40,15 +43,15 @@ class JobChecker
     end
     new_job_script
   end
-  def update_time_status(status, script_basename, user, project_number, next_dataset_id)
+  def update_time_status(status, script_basename, user, project_number, next_dataset_id, rails_host)
     unless @start_time
       @start_time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
     time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-    [status, script_basename, [@start_time, time].join("/"), user, project_number, next_dataset_id].join(',')
+    [status, script_basename, [@start_time, time].join("/"), user, project_number, next_dataset_id, rails_host].join(',')
   end
 
-  def perform(job_id, script_basename, log_file, user, project_id, next_dataset_id=nil)
+  def perform(job_id, script_basename, log_file, user, project_id, next_dataset_id=nil, rails_host=nil)
     puts "JobID (in JobChecker): #{job_id}"
     db0 = Redis.new(port: PORT, db: 0) # state + alpha DB
     db1 = Redis.new(port: PORT, db: 1) # log DB
@@ -63,10 +66,10 @@ class JobChecker
       #print ret
       state = ret.split(/\n/).last.strip
       #puts "state: #{state}"
-      db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id)
+      db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host)
 
       unless state == pre_state
-        db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id)
+        db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host)
         project_jobs = eval((db2[project_id]||[]).to_s)
         project_jobs = Hash[*project_jobs]
         project_jobs[job_id] = state
@@ -76,6 +79,11 @@ class JobChecker
       pre_state = state
       sleep WORKER_INTERVAL
     end while state =~ /RUNNING/  or state =~ /PENDING/ or state =~ /---/
+    if next_dataset_id and rails_host
+      uri = URI("#{rails_host}/data_set/#{next_dataset_id}/update_completed_samples")
+      #p uri
+      res = Net::HTTP.get_response(uri)
+    end
   end
 end
 
