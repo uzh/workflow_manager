@@ -450,11 +450,15 @@ module WorkflowManager
       partition = if i = options.index("-p")
                     options[i+1]
                   end
+      nice = if i = options.index("-i")
+               options[i+1]
+             end
       new_options = []
       new_options << "--mem=#{ram}G" if ram
       new_options << "-n #{cores}" if cores
       new_options << "--tmp=#{scratch}G" if scratch
       new_options << "-p #{partition}" if partition
+      new_options << "--nice=#{nice}" if nice
       new_options.join(" ")
     end
     def submit_job(script_file, script_content, option='')

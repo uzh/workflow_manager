@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 # 20121112 masa workflow manager client
-Version = '20210625-165025'
+Version = '20211104-160323'
 
 require 'drb/drb' 
 require 'workflow_manager/optparse_ex'
@@ -13,10 +13,11 @@ opt = OptionParser.new do |o|
   o.on(:server, 'druby://localhost:12345', '-d server', '--server', 'workflow manager URI (default: druby://localhost:12345)')
   o.on(:log, '-o logdir', '--logdir', 'directory of standard output and standard error file outputted after the job')
   o.on(:cores, '-c cores', '--cores', 'Number of cores to request for g-sub')
-  o.on(:nodes, '-n nodes', '--nodes', 'Comma separated list of nodes to submit to for g-sub')
+#  o.on(:nodes, '-n nodes', '--nodes', 'Comma separated list of nodes to submit to for g-sub')
   o.on(:ram, '-r RAM', '--RAM', 'Amount of RAM to request in Gigs for g-sub')
   o.on(:scratch, '-s scratch', '--scratch', 'Amount of scratch space to request in Gigs for g-sub')
-  o.on(:queue, '-q queue', '--queue', 'Queue name')
+#  o.on(:queue, '-q queue', '--queue', 'Queue name')
+  o.on(:nice, '-i nice', '--nice', 'Nice')
   o.parse!(ARGV)
 end
 unless script_file = ARGV[0] and script_file =~ /\.sh/
@@ -49,7 +50,8 @@ sge_options = []
 sge_options << "-c #{opt.cores}" if opt.cores
 sge_options << "-r #{opt.ram}" if opt.ram
 sge_options << "-s #{opt.scratch}" if opt.scratch
-sge_options << "-n #{opt.nodes}" if opt.nodes
+#sge_options << "-n #{opt.nodes}" if opt.nodes
+sge_options << "-i #{opt.nice}" if opt.nice
 
 script_content = File.read(script_file)
 workflow_manager = DRbObject.new_with_uri(uri)
