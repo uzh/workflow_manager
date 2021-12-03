@@ -187,12 +187,13 @@ module WorkflowManager
         statuses.each do |job_id, status|
           # puts [job_id, status].join(",")
           # 120249,RUNNING,QC_ventricles_100k.sh,2021-07-30 09:47:04/2021-07-30 09:47:04,masaomi,1535
-          stat, script_basename, time, user, project_number, next_dataset_id, rails_host = status.split(",")
+          stat, script_basename, time, user, project_number, next_dataset_id, rails_host, log_dir = status.split(",")
           if stat == "RUNNING" or stat == "PENDING"
             log_file = logs[job_id]
             log_puts("JobID (in recovery check): #{job_id}")
             puts "JobID (in recovery check): #{job_id}"
-            JobChecker.perform_async(job_id, script_basename, log_file, user, project_number, next_dataset_id, rails_host)
+            copy_command_template = copy_commands("org_file", log_dir).first
+            job_checker = JobChecker.perform_async(job_id, script_basename, log_file, user, project_number, next_dataset_id, rails_host, log_dir, copy_command_template)
           end
         end
       end
@@ -304,8 +305,10 @@ module WorkflowManager
       #p log_file
       #p job_id
       puts "JobID (in WorkflowManager): #{job_id}"
+      #puts "log_dir=#{log_dir}"
       sleep 1
-      JobChecker.perform_async(job_id, script_basename, log_file, user, project_number, next_dataset_id, rails_host)
+      copy_command_template = copy_commands("org_file", log_dir).first
+      job_checker = JobChecker.perform_async(job_id, script_basename, log_file, user, project_number, next_dataset_id, rails_host, log_dir, copy_command_template)
       job_id
     end
     def start_monitoring2(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='')

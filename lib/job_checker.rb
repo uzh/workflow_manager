@@ -43,15 +43,15 @@ class JobChecker
     end
     new_job_script
   end
-  def update_time_status(status, script_basename, user, project_number, next_dataset_id, rails_host)
+  def update_time_status(status, script_basename, user, project_number, next_dataset_id, rails_host, log_dir)
     unless @start_time
       @start_time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
     time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-    [status, script_basename, [@start_time, time].join("/"), user, project_number, next_dataset_id, rails_host].join(',')
+    [status, script_basename, [@start_time, time].join("/"), user, project_number, next_dataset_id, rails_host, log_dir].join(',')
   end
 
-  def perform(job_id, script_basename, log_file, user, project_id, next_dataset_id=nil, rails_host=nil)
+  def perform(job_id, script_basename, log_file, user, project_id, next_dataset_id=nil, rails_host=nil, log_dir=nil, copy_command_template=nil)
     puts "JobID (in JobChecker): #{job_id}"
     db0 = Redis.new(port: PORT, db: 0) # state + alpha DB
     db1 = Redis.new(port: PORT, db: 1) # log DB
@@ -66,10 +66,10 @@ class JobChecker
       #print ret
       state = ret.split(/\n/).last.strip
       #puts "state: #{state}"
-      db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host)
+      db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host, log_dir)
 
       unless state == pre_state
-        db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host)
+        db0[job_id] = update_time_status(state, script_basename, user, project_id, next_dataset_id, rails_host, log_dir)
         project_jobs = eval((db2[project_id]||[]).to_s)
         project_jobs = Hash[*project_jobs]
         project_jobs[job_id] = state
@@ -79,10 +79,22 @@ class JobChecker
       pre_state = state
       sleep WORKER_INTERVAL
     end while state =~ /RUNNING/  or state =~ /PENDING/ or state =~ /---/
+
+    # post process
     if next_dataset_id and rails_host
       uri = URI("#{rails_host}/data_set/#{next_dataset_id}/update_completed_samples")
       #p uri
       res = Net::HTTP.get_response(uri)
+
+      if log_dir and !log_dir.empty?
+        copy_command = copy_command_template.gsub("org_file", log_file)
+        #puts "copy_command=#{copy_command}"
+        system copy_command
+        err_file = log_file.gsub('_o.log','_e.log')
+        copy_command = copy_command_template.gsub("org_file", err_file)
+        #puts "copy_command=#{copy_command}"
+        system copy_command
+      end
     end
   end
 end
