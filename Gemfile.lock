@@ -1,0 +1,26 @@
+PATH
+  remote: .
+  specs:
+    workflow_manager (0.7.9)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    connection_pool (2.2.5)
+    rack (2.2.3)
+    redis (4.6.0)
+    sidekiq (6.4.0)
+      connection_pool (>= 2.2.2)
+      rack (~> 2.0)
+      redis (>= 4.2.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  redis
+  sidekiq
+  workflow_manager!
+
+BUNDLED WITH
+   2.2.32
