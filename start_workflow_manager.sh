@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 source /usr/local/ngseq/etc/lmod_profile
-module load Dev/Ruby/3.0.3
-module load Tools/Redis/6.0.1
+module load Dev/Ruby/3.1.3
+module load Tools/Redis/7.0.8
 conda activate gtools_env
 which python
 which g-sub

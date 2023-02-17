@@ -6,13 +6,18 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    connection_pool (2.2.5)
-    rack (2.2.3)
-    redis (4.6.0)
-    sidekiq (6.4.0)
-      connection_pool (>= 2.2.2)
-      rack (~> 2.0)
-      redis (>= 4.2.0)
+    concurrent-ruby (1.2.0)
+    connection_pool (2.3.0)
+    rack (3.0.4.1)
+    redis (5.0.6)
+      redis-client (>= 0.9.0)
+    redis-client (0.12.1)
+      connection_pool
+    sidekiq (7.0.5)
+      concurrent-ruby (< 2)
+      connection_pool (>= 2.3.0)
+      rack (>= 2.2.4)
+      redis-client (>= 0.11.0)
 
 PLATFORMS
   x86_64-linux
@@ -23,4 +28,4 @@ DEPENDENCIES
   workflow_manager!
 
 BUNDLED WITH
-   2.2.32
+   2.3.26
