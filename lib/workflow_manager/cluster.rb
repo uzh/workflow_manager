@@ -527,7 +527,7 @@ module WorkflowManager
                    ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
                  elsif now
                    ["g-req copynow #{org_dir} #{dest_parent_dir}"]
-                 elsif queue == "light"
+                 elsif queue.nil? or queue == "light"
                    ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
                  else
                    ["g-req -w copy -f heavy #{org_dir} #{dest_parent_dir}"]
