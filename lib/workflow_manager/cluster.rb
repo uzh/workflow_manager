@@ -28,7 +28,7 @@ module WorkflowManager
     end
     def job_pending?(job_id)
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
     end
     def kill_command(job_id)
     end
@@ -75,7 +75,7 @@ module WorkflowManager
       result = `#{command}`
       result.to_s.empty? ? false : true
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = []
       commands << "mkdir -p #{dest_parent_dir}"
       commands << "cp -r #{org_dir} #{dest_parent_dir}"
@@ -199,7 +199,7 @@ module WorkflowManager
       end
       qstat_flag
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = if now == "force"
                    target_file = File.join(dest_parent_dir, File.basename(org_dir))
                    ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
@@ -300,7 +300,7 @@ module WorkflowManager
   end
 
   class FGCZCourseCluster < FGCZCluster
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
     end
     def delete_command(target)
@@ -333,7 +333,7 @@ module WorkflowManager
     def job_pending?(job_id)
       # TODO
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       # TODO
     end
     def kill_command(job_id)
@@ -411,7 +411,7 @@ module WorkflowManager
       end
       qstat_flag
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = if now == "force"
                    target_file = File.join(dest_parent_dir, File.basename(org_dir))
                    ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
@@ -521,14 +521,16 @@ module WorkflowManager
       end
       qstat_flag
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = if now == "force"
                    target_file = File.join(dest_parent_dir, File.basename(org_dir))
                    ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
                  elsif now
                    ["g-req copynow #{org_dir} #{dest_parent_dir}"]
-                 else
+                 elsif queue == "light"
                    ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+                 else
+                   ["g-req -w copy -f heavy #{org_dir} #{dest_parent_dir}"]
                  end
     end
     def kill_command(job_id)
@@ -546,7 +548,7 @@ module WorkflowManager
   end
 
   class FGCZDebian10DemoCluster < FGCZDebian10Cluster
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
       commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
     end
     def delete_command(target)

@@ -202,8 +202,8 @@ module WorkflowManager
     def hello
       'hello hoge hoge bar boo bundle, '+ @cluster.name
     end
-    def copy_commands(org_dir, dest_parent_dir, now=nil)
-      @cluster.copy_commands(org_dir, dest_parent_dir, now)
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
+      @cluster.copy_commands(org_dir, dest_parent_dir, now, queue)
     end
     def kill_job(job_id)
       status(job_id, 'FAIL')
