@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 source /usr/local/ngseq/etc/lmod_profile
-module load Dev/Ruby/3.1.3
-module load Tools/Redis/7.0.8
+module load Dev/Ruby/3.2.3
+module load Tools/Redis/7.2.4
 . "/usr/local/ngseq/miniconda3/etc/profile.d/conda.sh"
 conda activate gtools_env
 which python
