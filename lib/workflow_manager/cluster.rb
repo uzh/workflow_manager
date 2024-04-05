@@ -549,7 +549,7 @@ module WorkflowManager
 
   class FGCZDebian10DemoCluster < FGCZDebian10Cluster
     def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
-      commands = ["cp -r #{org_dir} #{dest_parent_dir}"]
+      commands = ["rsync -r #{org_dir} #{dest_parent_dir}/"]
     end
     def delete_command(target)
       command = "rm -rf #{target}"
