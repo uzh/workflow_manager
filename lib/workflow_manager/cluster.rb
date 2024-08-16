@@ -555,4 +555,121 @@ module WorkflowManager
       command = "rm -rf #{target}"
     end
   end
+
+
+  class FGCZDebian12Cluster < Cluster
+    def parse(options)
+      options = options.split
+      ram = if i = options.index("-r")
+              options[i+1]
+            end
+      cores = if i = options.index("-c")
+                options[i+1]
+              end
+      scratch = if i = options.index("-s")
+                  options[i+1]
+                end
+      partition = if i = options.index("-p")
+                    options[i+1]
+                  end
+      nice = if i = options.index("-i")
+               options[i+1]
+             end
+      new_options = []
+      new_options << "--mem=#{ram}G" if ram
+      new_options << "-n #{cores}" if cores
+      new_options << "--gres=scratch:#{scratch}" if scratch
+      new_options << "-p #{partition}" if partition
+      new_options << "--nice=#{nice}" if nice
+      new_options.join(" ")
+    end
+    def submit_job(script_file, script_content, option='')
+      if script_name = File.basename(script_file) and script_name =~ /\.sh/
+        script_name = script_name.split(/\.sh/).first + ".sh"
+        new_job_script = generate_new_job_script(script_name, script_content)
+        new_job_script_base = File.basename(new_job_script)
+        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
+        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
+        #command = "g-sub -o #{log_file} -e #{err_file} -q user #{option} #{new_job_script}"
+        sbatch_options = parse(option)
+        command = "sbatch -o #{log_file} -e #{err_file} -N 1 #{sbatch_options} #{new_job_script}"
+        puts command
+        job_id = `#{command}`
+        job_id = job_id.chomp.split.last
+        [job_id, log_file, command]
+      else
+        err_msg = "FGCZDebian12Cluster#submit_job, ERROR: script_name is not *.sh: #{File.basename(script_file)}"
+        warn err_msg
+        raise err_msg
+      end
+    end
+    def job_running?(job_id)
+     qstat_flag = false
+      IO.popen('squeue') do |io|
+        while line=io.gets
+          # ["JOBID", "PARTITION", "NAME", "USER", "ST", "TIME", "NODES", "NODELIST(REASON)"]
+          # ["206", "employee", "test.sh", "masaomi", "R", "0:03", "1", "fgcz-h-030"]
+          jobid, partition, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state == 'R'
+            qstat_flag = true
+            break
+          end
+        end
+      end
+      qstat_flag
+    end
+    def job_ends?(log_file)
+      log_flag = false
+      IO.popen("tail -n 10 #{log_file} 2> /dev/null") do |io|
+        while line=io.gets
+          if line =~ /__SCRIPT END__/
+            log_flag = true
+            break
+          end
+        end
+      end
+      log_flag
+    end
+    def job_pending?(job_id)
+     qstat_flag = false
+      IO.popen('squeue') do |io|
+        while line=io.gets
+          jobid, partition, name, user, state, *others = line.chomp.split
+          if jobid.strip == job_id and state =~ /PD/
+            qstat_flag = true
+            break
+          end
+        end
+      end
+      qstat_flag
+    end
+    def copy_commands(org_dir, dest_parent_dir, now=nil, queue="light")
+      commands = if now == "force"
+                   target_file = File.join(dest_parent_dir, File.basename(org_dir))
+                   ["g-req copynow -f #{org_dir} #{dest_parent_dir}"]
+                 elsif now
+                   ["g-req copynow #{org_dir} #{dest_parent_dir}"]
+                 elsif queue.nil? or queue == "light"
+                   ["g-req -w copy #{org_dir} #{dest_parent_dir}"]
+                 else
+                   ["g-req -w copy -f heavy #{org_dir} #{dest_parent_dir}"]
+                 end
+    end
+    def kill_command(job_id)
+      command = "scancel #{job_id}"
+    end
+    def delete_command(target)
+      command = "g-req remove #{target}"
+    end
+    def cluster_nodes
+      nodes = {
+        'fgcz-h-110: cpu 8,mem  30 GB,scr 500G' => 'fgcz-h-110',
+        'fgcz-h-111: cpu 8,mem  30 GB,scr 400G' => 'fgcz-h-111',
+      }
+    end
+  end  
+  
 end
+
+
+
