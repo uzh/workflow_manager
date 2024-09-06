@@ -7,6 +7,7 @@ WorkflowManager::Server.configure do |config|
   config.interval = 30
   config.resubmit = 0
   config.redis_conf = "config/environments/redis.conf"
-  config.cluster = WorkflowManager::FGCZDebian10Cluster.new('FGCZDebian10Cluster')
+  config.cluster = WorkflowManager::FGCZDebian12Cluster.new('FGCZDebian12Cluster')
+  #config.cluster = WorkflowManager::FGCZDebian12DemoCluster.new('FGCZDebian12DemoCluster')
 end
 
