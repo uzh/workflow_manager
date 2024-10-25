@@ -285,12 +285,12 @@ module WorkflowManager
     def finalize_monitoring(current_status, log_file, log_dir)
       if current_status == 'success' or current_status == 'fail'
         unless log_dir.empty?
-          copy_commands(log_file, log_dir, "force").each do |command|
+          copy_commands(log_file, log_dir, "now").each do |command|
             log_puts(command)
             system command
           end
           err_file = log_file.gsub('_o.log','_e.log')
-          copy_commands(err_file, log_dir, "force").each do |command|
+          copy_commands(err_file, log_dir, "now").each do |command|
             log_puts(command)
             system command
           end
