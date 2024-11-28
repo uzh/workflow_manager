@@ -605,7 +605,7 @@ module WorkflowManager
         raise err_msg
       end
     end
-    def submit_job_command
+    def submit_job_command(script_file, script_content, option='')
       if script_name = File.basename(script_file) and script_name =~ /\.sh/
         script_name = script_name.split(/\.sh/).first + ".sh"
         new_job_script = generate_new_job_script(script_name, script_content)
