@@ -22,6 +22,8 @@ module WorkflowManager
     end
     def submit_job(script_file, script_content, option='')
     end
+    def submit_job_command(script_file, script_content, option='')
+    end
     def job_running?(job_id)
     end
     def job_ends?(log_file)
@@ -602,6 +604,27 @@ module WorkflowManager
         warn err_msg
         raise err_msg
       end
+    end
+    def submit_job_command
+      if script_name = File.basename(script_file) and script_name =~ /\.sh/
+        script_name = script_name.split(/\.sh/).first + ".sh"
+        new_job_script = generate_new_job_script(script_name, script_content)
+        new_job_script_base = File.basename(new_job_script)
+        log_file = File.join(@log_dir, new_job_script_base + "_o.log")
+        err_file = File.join(@log_dir, new_job_script_base + "_e.log")
+        sbatch_options = parse(option)
+        command = "sbatch -o #{log_file} -e #{err_file} -N 1 #{sbatch_options} #{new_job_script}"
+        #puts command
+        #job_id = `#{command}`
+        #job_id = job_id.chomp.split.last
+        #[job_id, log_file, command]
+        [command, new_job_script, log_file, err_file]
+      else
+        err_msg = "FGCZDebian12Cluster#submit_job_command, ERROR: script_name is not *.sh: #{File.basename(script_file)}"
+        warn err_msg
+        raise err_msg
+      end
+
     end
     def job_running?(job_id)
      qstat_flag = false

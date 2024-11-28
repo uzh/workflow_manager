@@ -298,6 +298,10 @@ module WorkflowManager
         Thread.current.kill
       end
     end
+    def submit_job(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='', next_dataset_id='', rails_host=nil)
+      script_basename = File.basename(script_path)
+      submit_command, script_path, stdout_path, stderr_path = @cluster.submit_job_command(script_path, script_content, sge_options)
+    end
     def start_monitoring3(script_path, script_content, user='sushi_lover', project_number=0, sge_options='', log_dir='', next_dataset_id='', rails_host=nil)
       script_basename = File.basename(script_path)
       job_id, log_file, command = @cluster.submit_job(script_path, script_content, sge_options)
